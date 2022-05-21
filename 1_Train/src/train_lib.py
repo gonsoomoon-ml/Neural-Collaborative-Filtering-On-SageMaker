@@ -1,6 +1,5 @@
 import os
 import time
-import argparse
 import numpy as np
 import logging
 import sys
@@ -9,8 +8,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
-import torch.backends.cudnn as cudnn
-from tensorboardX import SummaryWriter
 
 import model
 import config
@@ -33,12 +30,26 @@ def _get_logger():
 logger = _get_logger()
 
 def train(args):
-    #### Setup Environment ##########################    
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
-    cudnn.benchmark = True
+    '''
+    1. args 를 받아서 입력 데이터 로딩
+    2. 데이터 세트 생성
+    3. 모델 네트워크 생성
+    4. 훈련 푸프 실행
+    5. 모델 저장
+    '''
+    #######################################
+    ## 환경 확인     
+    #######################################
     
     print("args: \n", args)
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print("device: ", device)
+    
+    #######################################
+    ## 데이타 저장 위치 및 모델 경로 저장 위치 확인
+    #######################################
+    
     #### Parsing argument  ##########################        
     train_data_dir = args.train_data_dir
     test_data_dir = args.test_data_dir    
@@ -51,13 +62,14 @@ def train(args):
     test_negative_path = os.path.join(train_data_dir, 'ml-1m.test.negative')
 
     
-    #### PREPARE DATASET ##########################
+    #######################################
+    ## 데이터 로딩 및 데이터 세트 생성
+    #######################################
+
     print("=====> data loading <===========")        
     train_data, test_data, user_num ,item_num, train_mat = data_utils.load_all_script(train_rating_path, test_negative_path)
     
-    # sys.exit()
 
-    # construct the train and test datasets
     print("=====> create data loader <===========")    
     train_dataset = data_utils.NCFData(
             train_data, item_num, train_mat, args.num_ng, True)
@@ -68,21 +80,30 @@ def train(args):
     test_loader = data.DataLoader(test_dataset,
             batch_size=args.test_num_ng+1, shuffle=False, num_workers=0)
 
-
+    #######################################
+    ## 모델 네트워크 생성
+    #######################################
     
-    ########################### CREATE MODEL #################################
     if config.model == 'NeuMF-pre':
         assert os.path.exists(config.GMF_model_path), 'lack of GMF model'
         assert os.path.exists(config.MLP_model_path), 'lack of MLP model'
         GMF_model = torch.load(config.GMF_model_path)
         MLP_model = torch.load(config.MLP_model_path)
+        print("Pretrained model is used")        
     else:
         GMF_model = None
         MLP_model = None
+        print("Pretrained model is NOT used")            
 
     NCF_model = model.NCF(user_num, item_num, args.factor_num, args.num_layers, 
                             args.dropout, config.model, GMF_model, MLP_model)
-    NCF_model.cuda()
+
+    NCF_model.to(device)
+    
+    #######################################
+    ## 손실 함수 및 옵티마이저 정의
+    #######################################    
+    
     loss_function = nn.BCEWithLogitsLoss()
 
     if config.model == 'NeuMF-pre':
@@ -92,7 +113,10 @@ def train(args):
 
     # writer = SummaryWriter() # for visualization
 
-    ########################### TRAINING #####################################
+    #######################################
+    ## 훈련 루프 실행
+    #######################################
+    
     count, best_hr = 0, 0
     print("=====> Staring Traiing <===========")
     for epoch in range(args.epochs):
@@ -101,16 +125,15 @@ def train(args):
         train_loader.dataset.ng_sample()
 
         for user, item, label in train_loader:
-            user = user.cuda()
-            item = item.cuda()
-            label = label.float().cuda()
+            user = user.to(device)
+            item = item.to(device)
+            label = label.float().to(device)
 
             NCF_model.zero_grad()
             prediction = NCF_model(user, item)
             loss = loss_function(prediction, label)
             loss.backward()
             optimizer.step()
-            # writer.add_scalar('data/loss', loss.item(), count)
             count += 1
 
         NCF_model.eval()
@@ -128,9 +151,6 @@ def train(args):
                     os.mkdir(config.model_path)
                     ### Save Model 을 다른 곳에 저장
                     _save_model(NCF_model, model_dir, f'{config.model}.pth')                    
-#                 torch.save(NCF_model.state_dict(),'{}{}.pth'.format(config.model_path, config.model))
-
-
 
     print("End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}".format(
                                         best_epoch, best_hr, best_ndcg))

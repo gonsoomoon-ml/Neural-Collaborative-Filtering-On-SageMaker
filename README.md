@@ -36,3 +36,10 @@ NeuMF (with pre-training)	 | 0.720 | 0.439 | 0.879 | 0.555
 ```
 python main.py --batch_size=256 --lr=0.001 --factor_num=16
 ```
+
+# Reference
+- [Paper Original Code: Neural Collaborative Filtering)(https://github.com/hexiangnan/neural_collaborative_filtering)
+- [원본: 데이터 설명](https://github.com/hexiangnan/neural_collaborative_filtering)
+
+- 세이지 메이커로 파이토치 사용 --> [Use PyTorch with the SageMaker Python SDK](https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/using_pytorch.html)
+
