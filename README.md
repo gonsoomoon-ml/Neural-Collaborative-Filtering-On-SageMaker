@@ -1,29 +1,11 @@
 # Neural Collaborative Filtering (NCF) On SageMaker
 
 # 1. 배경
-A pytorch GPU implementation of He et al. "Neural Collaborative Filtering" at WWW'17
+[Neural Collaborative Filtering](https://arxiv.org/abs/1708.05031) 의 논문을
+[A pytorch GPU implementation of He et al. "Neural Collaborative Filtering" at WWW'17](https://github.com/guoyang9/NCF) Pytorch 구현 버전이 있습니다.
 
-* https://github.com/guoyang9/NCF
+이 버전은 아래와 같은 성능을 보이고 있으, 원본 논문의 성능과 거의 유사한 결과를 나타냅니다.
 
-
-
-# NCF
-### A pytorch GPU implementation of He et al. "Neural Collaborative Filtering" at WWW'17
-
-Note that I use the two sub datasets provided by Xiangnan's [repo](https://github.com/hexiangnan/neural_collaborative_filtering/tree/master/Data).
-
-I randomly utilized a factor number **32**, MLP layers **3**, epochs is **20**, and posted the results in the original paper and this implementation here. I employed the **exactly same settings** with Xiangnan, including batch_size, learning rate, and all the initialization methods in Xiangnan's keras repo. From the results I observed, this repo can replicate the performance of the original NCF.
-Xiangnan's keras [repo](https://github.com/hexiangnan/neural_collaborative_filtering):
-
-Models | MovieLens HR@10 | MovieLens NDCG@10 | Pinterest HR@10 | Pinterest NDCG@10
------- | --------------- | ----------------- | --------------- | -----------------
-MLP    | 0.692 | 0.425 | 0.868 | 0.542
-GMF    | - | - | - | -
-NeuMF (without pre-training) | 0.701 | 0.425 | 0.870 | 0.549
-NeuMF (with pre-training)	 | 0.726 | 0.445 | 0.879 | 0.555
-
-
-This pytorch code:
 
 Models | MovieLens HR@10 | MovieLens NDCG@10 | Pinterest HR@10 | Pinterest NDCG@10
 ------ | --------------- | ----------------- | --------------- | -----------------
@@ -32,18 +14,68 @@ GMF    | 0.708 | 0.429 | 0.867 | 0.546
 NeuMF (without pre-training) | 0.701 | 0.424 | 0.867 | 0.544
 NeuMF (with pre-training)	 | 0.720 | 0.439 | 0.879 | 0.555
 
+이 워크샵은 위의 Pytorch 버전을 SageMaker 에서 훈련 및 서빙을 구현을 했고, SageMaker의 여러가지 장점을 사용하여, 대규모의 데이터 세트에서도 동작할 수 있게 만들었습니다.
 
-## The requirements are as follows:
-	* python==3.6
-	* pandas==0.24.2
-	* numpy==1.16.2
-	* pytorch==1.0.1
-	* gensim==3.7.1
-	* tensorboardX==1.6 (mainly useful when you want to visulize the loss, see https://github.com/lanpa/tensorboard-pytorch)
+# 2. 주요 파일 
 
-## Example to run:
+- 0_Setup_Environment
+    - 0.0.Setup-Environment.ipynb
+        - 필요 패키지 설치 및 로컬 모드 세팅
+
+
+- 1_Train
+    - 1.1.NCF-Train-Scratch.ipynb
+        - 세이지 메이커 훈련 잡 없이 훈련 코드를 단계별로 노트북에서 실행
+    - 1.2.NCF-Train_Local_Script_Mode.ipynb 
+        - 세이지 메이커 로컬 모드,호스트 모드로 훈련 
+        - 세이지 메이커 Experiment 사용하여 실험 추적        
+    - 1.3.NCF-Train_Horovod.ipynb
+        - 세이지 메이커 호로보드 로컬 모드, 호스트 모드로 훈련 
+
+
+- 2_Inference
+    - 2.1.NCF-Inference-Scratch.ipynb
+        - 세이지 메이커 배포를 로컬 모드와 호스틀 모드를 단계별 실행
+        - 추론을 SageMaker Python SDK 및  Boto3 SDK  구현
+    - 2.2.NCF-Inference-SageMaker.ipynb
+        - 세이지 메이커 배포 및 서빙을 전체 실행
+
+# 3. 상세 폴더 구성
 ```
-python main.py --batch_size=256 --lr=0.001 --factor_num=16
+ |-0_Setup_Environment
+ | |-0.0.Setup-Environment.ipynb
+ | |-daemon.json
+ | |-local_mode_setup.sh
+ |-1_Train
+ | |-1.1.NCF-Train-Scratch.ipynb
+ | |-1.3.NCF-Train_Horovod.ipynb
+ | |-src
+ | | |-train.py
+ | | |-train_lib.py
+ | | |-train_horovod.py
+ | | |-data_utils.py
+ | | |-model.py
+ | | |-evaluate.py
+ | | |-requirements.txt
+ | | |-config.py
+ |-data
+ | |-ml-1m.test.negative
+ | |-ml-1m.test.rating
+ | |-ml-1m.train.rating
+ |-2_Inference
+ | |-2.1.NCF-Inference-Scratch.ipynb
+ | |-2.2.NCF-Inference-SageMaker.ipynb
+ | |-src
+ | | |-inference.py
+ | | |-inference_utils.py
+ | | |-data_utils.py
+ | | |-model.py
+ | | |-model_config.json
+ | | |-common_utils.py
+ | | |-requirements.txt
+ | | |-config.py
+
+
 ```
 
 # Reference

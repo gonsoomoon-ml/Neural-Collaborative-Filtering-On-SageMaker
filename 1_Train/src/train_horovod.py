@@ -260,6 +260,7 @@ def train_horovod(args):
     NCF_model = model.NCF(user_num, item_num, args.factor_num, args.num_layers, 
                             args.dropout, config.model, GMF_model, MLP_model)
 
+    NCF_model = nn.DataParallel(NCF_model)
     NCF_model.to(device)
     
 
@@ -306,24 +307,23 @@ def train_horovod(args):
 
         HR, NDCG = test(hvd, NCF_model, test_loader, args.top_k)
         
-#         NCF_model.eval()
-#         HR, NDCG = evaluate.metrics(NCF_model, test_loader, args.top_k)
 
-        elapsed_time = time.time() - start_time
-        print("The time elapse of epoch {:03d}".format(epoch) + " is: " + 
-                time.strftime("%H: %M: %S", time.gmtime(elapsed_time)))
-        print("HR={:.3f}; \t NDCG={:.3f};".format(np.mean(HR), np.mean(NDCG)))
+        if hvd.rank() == 0:
+            elapsed_time = time.time() - start_time
+            print("The time elapse of epoch {:03d}".format(epoch) + " is: " + 
+                    time.strftime("%H: %M: %S", time.gmtime(elapsed_time)))
+            print("HR={:.3f}; \t NDCG={:.3f};".format(np.mean(HR), np.mean(NDCG)))
 
-        print("best_hr: ", best_hr)
-        if HR > best_hr:
-            best_hr, best_ndcg, best_epoch = HR, NDCG, epoch
-            if args.out:
-                if not os.path.exists(config.model_path):
-                    os.mkdir(config.model_path)
-                ### Save Model 을 다른 곳에 저장
-                _save_model(NCF_model, model_dir, f'{config.model}.pth')                    
+            print("best_hr: ", best_hr)
+            if HR > best_hr:
+                best_hr, best_ndcg, best_epoch = HR, NDCG, epoch
+                if args.out:
+                    if not os.path.exists(config.model_path):
+                        os.mkdir(config.model_path)
+                    ### Save Model 을 다른 곳에 저장
+                    _save_model(NCF_model, model_dir, f'{config.model}.pth')                    
 
-    print("End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}".format(best_epoch, best_hr, best_ndcg))
+        print("End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}".format(best_epoch, best_hr, best_ndcg))
 
 
 def _save_model(model, model_dir, model_weight_file_name):
