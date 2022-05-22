@@ -1,3 +1,12 @@
+# Neural Collaborative Filtering (NCF) On SageMaker
+
+# 1. 배경
+A pytorch GPU implementation of He et al. "Neural Collaborative Filtering" at WWW'17
+
+* https://github.com/guoyang9/NCF
+
+
+
 # NCF
 ### A pytorch GPU implementation of He et al. "Neural Collaborative Filtering" at WWW'17
 

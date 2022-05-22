@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
 
+# Custom Module
 import model
 import config
 import evaluate
@@ -75,6 +76,7 @@ def train(args):
             train_data, item_num, train_mat, args.num_ng, True)
     test_dataset = data_utils.NCFData(
             test_data, item_num, train_mat, 0, False)
+    
     train_loader = data.DataLoader(train_dataset,
             batch_size=args.batch_size, shuffle=True, num_workers=4)
     test_loader = data.DataLoader(test_dataset,
@@ -142,23 +144,25 @@ def train(args):
         elapsed_time = time.time() - start_time
         print("The time elapse of epoch {:03d}".format(epoch) + " is: " + 
                 time.strftime("%H: %M: %S", time.gmtime(elapsed_time)))
-        print("HR: {:.3f}\tNDCG: {:.3f}".format(np.mean(HR), np.mean(NDCG)))
+        print("HR={:.3f}; \t NDCG={:.3f};".format(np.mean(HR), np.mean(NDCG)))
 
+        print("best_hr: ", best_hr)
         if HR > best_hr:
             best_hr, best_ndcg, best_epoch = HR, NDCG, epoch
             if args.out:
                 if not os.path.exists(config.model_path):
                     os.mkdir(config.model_path)
-                    ### Save Model 을 다른 곳에 저장
-                    _save_model(NCF_model, model_dir, f'{config.model}.pth')                    
+                ### Save Model 을 다른 곳에 저장
+                _save_model(NCF_model, model_dir, f'{config.model}.pth')                    
 
     print("End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}".format(
                                         best_epoch, best_hr, best_ndcg))
 
+    
 
 def _save_model(model, model_dir, model_weight_file_name):
     path = os.path.join(model_dir, model_weight_file_name)
-    logger.info(f"the model is saved at {path}")    
+    print(f"the model is saved at {path}")    
     # recommended way from http://pytorch.org/docs/master/notes/serialization.html
     torch.save(model.state_dict(), path)
 
