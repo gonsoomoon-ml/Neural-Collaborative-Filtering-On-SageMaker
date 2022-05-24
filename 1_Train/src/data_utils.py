@@ -72,7 +72,7 @@ class NCFData(data.Dataset):
     def __init__(self, features, 
                  num_item, train_mat=None, num_ng=0, is_training=None):
         super(NCFData, self).__init__()
-        """ Note that the labels are only useful when training, we thus 
+        """ Note that the labels are only useful when training, we thus  
 			add them in the ng_sample() function.
 		"""
         self.features_ps = features
