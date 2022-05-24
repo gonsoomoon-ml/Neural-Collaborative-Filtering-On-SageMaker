@@ -81,8 +81,13 @@ def test(hvd, model, test_loader, top_k):
 
     HR_mean = np.mean(HR)
     NDCG_mean = np.mean(NDCG)       
-    
-    print("len(test_loader.sampler): ", len(test_loader.sampler))
+
+    print("len(test_loader.sampler): ", len(test_loader.sampler))    
+    print(
+        "Before merge, Test set: Average HR: {:.4f}, NDCG: {:.2f}%\n".format(HR_mean, NDCG_mean)
+    )
+
+
 
     # Horovod: use test_sampler to determine the number of examples in this worker's partition.
 #     HR_mean /= len(test_loader.sampler)
@@ -224,23 +229,6 @@ def train_horovod(args):
         logger.info("Gpu count: {}".format(torch.cuda.device_count()))
 
     
-    #######################################
-    ## 데이터 로딩 및 데이터 세트 생성
-    #######################################
-
-#     print("=====> data loading <===========")        
-#     train_data, test_data, user_num ,item_num, train_mat = data_utils.load_all_script(train_rating_path, test_negative_path)
-    
-
-#     print("=====> create data loader <===========")    
-#     train_dataset = data_utils.NCFData(
-#             train_data, item_num, train_mat, args.num_ng, True)
-#     test_dataset = data_utils.NCFData(
-#             test_data, item_num, train_mat, 0, False)
-#     train_loader = data.DataLoader(train_dataset,
-#             batch_size=args.batch_size, shuffle=True, num_workers=4)
-#     test_loader = data.DataLoader(test_dataset,
-#             batch_size=args.test_num_ng+1, shuffle=False, num_workers=0)
 
     #######################################
     ## 모델 네트워크 생성
@@ -273,7 +261,14 @@ def train_horovod(args):
         optimizer = optim.SGD(NCF_model.parameters(), lr=args.lr * lr_scaler)
     else:
         optimizer = optim.Adam(NCF_model.parameters(), lr=args.lr * lr_scaler)
-    
+
+#     if config.model == 'NeuMF-pre':
+#         optimizer = optim.SGD(NCF_model.parameters(), lr=args.lr )
+#     else:
+#         optimizer = optim.Adam(NCF_model.parameters(), lr=args.lr )
+
+
+        
     # Horovod: broadcast parameters & optimizer state.
     hvd.broadcast_parameters(NCF_model.state_dict(), root_rank=0)
     hvd.broadcast_optimizer_state(optimizer, root_rank=0)

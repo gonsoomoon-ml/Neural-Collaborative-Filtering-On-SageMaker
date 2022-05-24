@@ -17,6 +17,8 @@ NeuMF (with pre-training)	 | 0.720 | 0.439 | 0.879 | 0.555
 이 워크샵은 위의 Pytorch 버전을 SageMaker 에서 훈련 및 서빙을 구현을 했고, SageMaker의 여러가지 장점을 사용하여, 대규모의 데이터 세트에서도 동작할 수 있게 만들었습니다.
 
 # 2. 주요 파일 
+- ### [중요] 이 워크샵은 ml.p3.2xlarge 세이지 메이커 노트북 인스턴스에서 테스트 되었습니다.
+
 
 - 0_Setup_Environment
     - 0.0.Setup-Environment.ipynb

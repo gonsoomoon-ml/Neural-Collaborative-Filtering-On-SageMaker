@@ -16,22 +16,38 @@ def ndcg(gt_item, pred_items):
 
 
 def metrics(model, test_loader, top_k):
-	HR, NDCG = [], []
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(device)
+    HR, NDCG = [], []
 
-	for user, item, label in test_loader:
-		user = user.cuda()
-		item = item.cuda()
+    count = 0
+    for user, item, label in test_loader:
+#         user = user.to(device)
+#         item = item.to(device)
+        user = user.cuda()
+        item = item.cuda()
 
-		predictions = model(user, item)
-		_, indices = torch.topk(predictions, top_k)
-		recommends = torch.take(
+        
+
+        predictions = model(user, item)
+        _, indices = torch.topk(predictions, top_k)
+        recommends = torch.take(
 				item, indices).cpu().numpy().tolist()
 
-		gt_item = item[0].item()
-		HR.append(hit(gt_item, recommends))
-		NDCG.append(ndcg(gt_item, recommends))
+        gt_item = item[0].item()
+        HR.append(hit(gt_item, recommends))
+        NDCG.append(ndcg(gt_item, recommends))
+        
+        count += 1
+        
+#         print(count)        
+#         if count == 5:
+#             break
 
-	return np.mean(HR), np.mean(NDCG)
+#         print("HR: ", HR)
+#         print('NDCG: ', NDCG)
+        
+    return np.mean(HR), np.mean(NDCG)
 
 
 def predict_metric(model, test_loader, top_k):
