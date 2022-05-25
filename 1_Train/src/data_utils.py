@@ -1,5 +1,6 @@
 import numpy as np 
 import pandas as pd 
+import random
 import scipy.sparse as sp
 
 import torch.utils.data as data
@@ -8,7 +9,7 @@ import config
 
 
 def load_all_script(train_rating_path,test_negative_path, test_num=100):
-	""" We load all the three file here to save time in each epoch. """
+	""" We load all the three file here to save time in each epoch.  """
 	train_data = pd.read_csv(
 		train_rating_path, 
 		sep='\t', header=None, names=['user', 'item'], 
@@ -82,6 +83,19 @@ class NCFData(data.Dataset):
         self.is_training = is_training
         self.labels = [0 for _ in range(len(features))]
 
+    def _shuffle_list(self, x, y, seed=0):
+        '''
+        두개의 리스트를 같은 순서를 가지고 랜덤하게 정렬
+        '''
+        z = list(zip(x, y))
+        #random.seed(seed)
+        random.seed(0)
+        random.shuffle(z)
+        random_x, random_y = zip(*z)
+
+        return random_x, random_y
+
+        
     def ng_sample(self):
         assert self.is_training, 'no need to sampling when testing'
 
@@ -104,6 +118,18 @@ class NCFData(data.Dataset):
 
         self.features_fill = self.features_ps + self.features_ng
         self.labels_fill = labels_ps + labels_ng
+        
+        # 데이터 셔플링
+        print("### Shuffling data in dataset")
+        shuffle_feature, shuffle_label = self._shuffle_list(self.features_fill, self.labels_fill)
+        
+        self.features_fill = shuffle_feature
+        self.labels_fill = shuffle_label
+
+        
+        
+
+        
 
     def __len__(self):
         return (self.num_ng + 1) * len(self.labels)

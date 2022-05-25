@@ -67,6 +67,7 @@ def _metric_average(hvd, val, name):
 def test(hvd, model, test_loader, top_k):
     HR, NDCG = [], []
 
+    count = 0
     for user, item, label in test_loader:
         user = user.cuda()
         item = item.cuda()
@@ -78,6 +79,14 @@ def test(hvd, model, test_loader, top_k):
         gt_item = item[0].item()
         HR.append(hit(gt_item, recommends))
         NDCG.append(ndcg(gt_item, recommends))
+                
+        count = count + 1
+        
+        if count == 1000:
+            print("HR in Test: ", HR)
+            print("NDCG in Test: ", NDCG)        
+            
+            break
 
     HR_mean = np.mean(HR)
     NDCG_mean = np.mean(NDCG)       
@@ -115,15 +124,20 @@ def _get_train_data_loader(hvd, args, train_rating_path, test_negative_path, **k
     train_dataset = data_utils.NCFData(
             train_data, item_num, train_mat, args.num_ng, True)
 
+#     train_sampler = torch.utils.data.distributed.DistributedSampler(
+#         train_dataset, shuffle=True, num_replicas=hvd.size(), rank=hvd.rank()
+#     )
+
     train_sampler = torch.utils.data.distributed.DistributedSampler(
-        train_dataset, num_replicas=hvd.size(), rank=hvd.rank()
+        train_dataset,  num_replicas=hvd.size(), rank=hvd.rank()
     )
+
     
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, sampler=train_sampler, **kwargs
     )
 
-    return train_loader, user_num, item_num
+    return train_loader, user_num, item_num, train_sampler
 
 def _get_test_data_loader(hvd, args, train_rating_path, test_negative_path, **kwargs):
     logger.info("Get test data sampler and data loader")    
@@ -193,6 +207,7 @@ def train_horovod(args):
 
     ##  Horovod: initialize library ##
     hvd.init()
+    torch.manual_seed(args.seed)
 
     ##  Horovod: pin GPU to local local rank ##
     torch.cuda.set_device(hvd.local_rank())
@@ -201,10 +216,10 @@ def train_horovod(args):
     # Horovod: limit number of CPU threads to be used per worker
     torch.set_num_threads(1)
 
-    train_kwargs = {"num_workers": 4, "pin_memory": True}
+    train_kwargs = {"num_workers": 1, "pin_memory": True}
     test_kwargs = {"num_workers": 1, "pin_memory": True}    
 
-    train_loader, user_num, item_num = _get_train_data_loader(hvd, args, train_rating_path, test_negative_path, **train_kwargs)
+    train_loader, user_num, item_num, train_sampler = _get_train_data_loader(hvd, args, train_rating_path, test_negative_path, **train_kwargs)
     test_loader = _get_test_data_loader(hvd, args, train_rating_path, test_negative_path,  **test_kwargs)
 
     logger.debug(
@@ -223,7 +238,8 @@ def train_horovod(args):
         )
     )
 
-    lr_scaler = hvd.size()        
+    lr_scaler = hvd.size()     
+    print("###### lr_scaler size: ", lr_scaler)
     
     if torch.cuda.device_count() > 1:
         logger.info("Gpu count: {}".format(torch.cuda.device_count()))
@@ -248,7 +264,7 @@ def train_horovod(args):
     NCF_model = model.NCF(user_num, item_num, args.factor_num, args.num_layers, 
                             args.dropout, config.model, GMF_model, MLP_model)
 
-    NCF_model = nn.DataParallel(NCF_model)
+    # NCF_model = nn.DataParallel(NCF_model)
     NCF_model.to(device)
     
 
@@ -257,15 +273,16 @@ def train_horovod(args):
     #######################################    
     loss_function = nn.BCEWithLogitsLoss()    
     
-    if config.model == 'NeuMF-pre':
-        optimizer = optim.SGD(NCF_model.parameters(), lr=args.lr * lr_scaler)
-    else:
-        optimizer = optim.Adam(NCF_model.parameters(), lr=args.lr * lr_scaler)
-
 #     if config.model == 'NeuMF-pre':
-#         optimizer = optim.SGD(NCF_model.parameters(), lr=args.lr )
+#         optimizer = optim.SGD(NCF_model.parameters(), lr=args.lr * lr_scaler, momentum=0.5)
 #     else:
-#         optimizer = optim.Adam(NCF_model.parameters(), lr=args.lr )
+#         optimizer = optim.Adam(NCF_model.parameters(), lr=args.lr * lr_scaler)
+
+    # optimizer = optim.SGD(NCF_model.parameters(), lr=args.lr * lr_scaler, momentum=0.5)        
+    if config.model == 'NeuMF-pre':
+        optimizer = optim.SGD(NCF_model.parameters(), lr=args.lr )
+    else:
+        optimizer = optim.Adam(NCF_model.parameters(), lr=args.lr )
 
 
         
@@ -275,6 +292,7 @@ def train_horovod(args):
 
     # Horovod: wrap optimizer with DistributedOptimizer.
     optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=NCF_model.named_parameters())
+
 
     
     #######################################
@@ -288,12 +306,14 @@ def train_horovod(args):
         start_time = time.time()
         train_loader.dataset.ng_sample()
 
+        train_sampler.set_epoch(epoch)
         for user, item, label in train_loader:
             user = user.to(device)
             item = item.to(device)
             label = label.float().to(device)
 
-            NCF_model.zero_grad()
+            # NCF_model.zero_grad()
+            optimizer.zero_grad()
             prediction = NCF_model(user, item)
             loss = loss_function(prediction, label)
             loss.backward()
@@ -334,7 +354,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     ##################################
-    #### 세이지 메이커 프레임워크의 도커 컨테이너 환경 변수 인자
+    #### 세이지 메이커 프레임워크의 도커 컨테이너 환경 변수 인자 
     ##################################
 
     parser.add_argument('--train-data-dir', type=str, default=os.environ['SM_CHANNEL_TRAIN'])

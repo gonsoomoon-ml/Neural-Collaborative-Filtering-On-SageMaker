@@ -64,7 +64,7 @@ def train(args):
 
     
     #######################################
-    ## 데이터 로딩 및 데이터 세트 생성
+    ## 데이터 로딩 및 데이터 세트 생성 
     #######################################
 
     print("=====> data loading <===========")        
@@ -78,7 +78,12 @@ def train(args):
             test_data, item_num, train_mat, 0, False)
     
     train_loader = data.DataLoader(train_dataset,
-            batch_size=args.batch_size, shuffle=True, num_workers=4)
+            batch_size=args.batch_size, shuffle=False, num_workers=4)
+    
+#     train_loader = data.DataLoader(train_dataset,
+#             batch_size=args.batch_size, shuffle=True, num_workers=4)
+
+    
     test_loader = data.DataLoader(test_dataset,
             batch_size=args.test_num_ng+1, shuffle=False, num_workers=0)
 
