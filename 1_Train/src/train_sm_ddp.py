@@ -13,6 +13,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
 import torch.distributed as dist
+from torch.optim.lr_scheduler import StepLR
 
 # Custom Module
 import model
@@ -35,39 +36,52 @@ def train_horovod(args):
     4. 훈련 푸프 실행
     5. 모델 저장
     '''
-    #######################################    
-    ## Horovod ##    
-    #######################################
+    ######################    
+    # DDP 코드: 1. 라이브러리 임포트
+    ######################    
+
+    import smdistributed.dataparallel.torch.distributed as dist
+    from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
+
+    dist.init_process_group(backend='smddp')    
+
+    ######################    
+    # DDP 코드 : 2. 배치 사이즈 결정       
+    # SageMaker data parallel: Scale batch size by world size
+    ######################        
     
-    import horovod.torch as hvd
+    batch_size = args.batch_size        
+    batch_size //= dist.get_world_size()
+    batch_size = max(batch_size, 1)
+    if dist.get_rank() == 0:
+        logger.info("################################")            
+        logger.info(f"Global batch size: {args.batch_size}")            
+        logger.info(f"each gpu batch_size: {batch_size}")
 
-    ##  Horovod: initialize library ##
-    hvd.init()
-    torch.manual_seed(args.seed)
+        
+    ######################    
+    # DDP 코드 : 3. 각 GPU 를 DDP LIb 프로세스에 할당      
+    # SageMaker data parallel: Pin each GPU to a single library process.
+    ######################        
+    import os
+    
+    local_rank = dist.get_local_rank()    
+    torch.cuda.set_device(local_rank) 
+    
+    if dist.get_rank() == 0:    
+        logger.info(f"world size: {dist.get_world_size()}")
 
-    ##  Horovod: pin GPU to local local rank ##
-    torch.cuda.set_device(hvd.local_rank())
-    torch.cuda.manual_seed(args.seed)
-
-    # Horovod: limit number of CPU threads to be used per worker
-    torch.set_num_threads(1)
-
-    lr_scaler = hvd.size()     
-    if hvd.rank() == 0:
-        logger.info("###### lr_scaler size: {} ".format(lr_scaler))
 
 
         
     #######################################
     ## 입력 매개 변수 및 환경 확인     
     #######################################
-    if hvd.rank() == 0:
+    if dist.get_rank() == 0:
         logger.info("##### Args: \n {}".format(args))
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
-    if hvd.rank() == 0:
-        logger.debug("device: ".format(device))
     
     #######################################
     ## 데이타 저장 위치 및 모델 경로 저장 위치 확인
@@ -77,7 +91,7 @@ def train_horovod(args):
     test_data_dir = args.test_data_dir    
     model_dir = args.model_dir        
     
-    if hvd.rank() == 0:
+    if dist.get_rank() == 0:
         logger.info("args.train_data_dir: ".format(train_data_dir))
         logger.info("args.test_data_dir: ".format(test_data_dir))  
         logger.info("args.model_dir: ".format(model_dir))  
@@ -90,22 +104,45 @@ def train_horovod(args):
     ## 데이터 로딩 및 데이터 세트 생성 
     #######################################
 
-    if hvd.rank() == 0:    
+    if dist.get_rank() == 0:
         logger.info("=====> data loading <===========")        
     
     train_kwargs = {'num_workers': 4, 'pin_memory': True}
     test_kwargs = {'num_workers': 1, 'pin_memory': True}    
     
-    train_loader, train_sampler, user_num, item_num = _get_train_data_loader(hvd, args, train_rating_path, test_negative_path, **train_kwargs)
-    test_loader =  _get_test_data_loader(hvd, args, train_rating_path, test_negative_path, **test_kwargs)
+    train_loader, train_sampler, user_num, item_num = _get_train_data_loader(dist, args, train_rating_path, test_negative_path, **train_kwargs)
+    test_loader =  _get_test_data_loader(dist, args, train_rating_path, test_negative_path, **test_kwargs)
     
+    if dist.get_rank() == 0:    
+        logger.info(
+            "Processes {}/{} ({:.0f}%) of train data".format(
+                len(train_loader.sampler),
+                len(train_loader.dataset),
+                100.0 * len(train_loader.sampler) / len(train_loader.dataset),
+            )
+        )
 
+        logger.info(
+            "Processes {}/{} ({:.0f}%) of test data".format(
+                len(test_loader.sampler),
+                len(test_loader.dataset),
+                100.0 * len(test_loader.sampler) / len(test_loader.dataset),
+            )
+        )
+
+
+    
     #######################################
     ## 모델 네트워크 생성
     #######################################
     
-    NCF_model = load_model_network(hvd, user_num, item_num, args)            
-    NCF_model.to(device)    
+    NCF_model = load_model_network(dist, user_num, item_num, args)            
+    NCF_model = DDP(NCF_model.to(device))
+    NCF_model.cuda(local_rank)
+    
+    if dist.get_rank() == 0:
+        logger.info("### Model loaded")    
+    
     
     #######################################
     ## 손실 함수 및 옵티마이저 정의
@@ -117,17 +154,8 @@ def train_horovod(args):
         # 모델이 "NeuMF-End" 이기에 else 문이 선택 됨.
         optimizer = optim.Adam(NCF_model.parameters(), lr=args.lr)
 
-    #######################################
-    ## Horovod
-    #######################################
-        
-    # Horovod: broadcast parameters & optimizer state.
-    hvd.broadcast_parameters(NCF_model.state_dict(), root_rank=0)
-    hvd.broadcast_optimizer_state(optimizer, root_rank=0)
-
-    # Horovod: wrap optimizer with DistributedOptimizer.
-    optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=NCF_model.named_parameters())
-
+    scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
+    
         
 
     #######################################
@@ -142,28 +170,29 @@ def train_horovod(args):
         start_time = time.time()
 
         # 훈련 루프 실행
-        train_epoch(hvd, args, NCF_model, train_loader, optimizer, epoch, device, sampler=train_sampler)     
+        train_epoch(dist, args, NCF_model, train_loader, optimizer, epoch, device, sampler=train_sampler)
+        scheduler.step()    
 
         elapsed_time = time.time() - start_time    
         
-        if hvd.rank() == 0:        
+        if dist.get_rank() == 0:
             print("The time elapse of epoch {:03d}".format(epoch) + " is: " + 
                     time.strftime("%H: %M: %S", time.gmtime(elapsed_time)))
 
             best_hr, best_ndcg, best_epoch = test(args, NCF_model, epoch, test_loader, best_hr, model_dir)
     
         
-    if hvd.rank() == 0:    
+    if dist.get_rank() == 0:
         print("End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}".format(
                                         best_epoch, best_hr, best_ndcg))
 
         
 
-def _get_train_data_loader(hvd, args, train_rating_path, test_negative_path, **kwargs):
+def _get_train_data_loader(dist, args, train_rating_path, test_negative_path, **kwargs):
     '''
     훈련 데이터 셋 생성 및 데이터 로더 생성
     '''
-    if hvd.rank() == 0:
+    if dist.get_rank() == 0:
         logger.info("Get train data sampler and data loader")
     
     train_data, test_data, user_num ,item_num, train_mat = data_utils.load_all_script(train_rating_path, test_negative_path)
@@ -174,8 +203,10 @@ def _get_train_data_loader(hvd, args, train_rating_path, test_negative_path, **k
 
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(
-        train_dataset,  shuffle=True, num_replicas=hvd.size(), rank=hvd.rank()
+        train_dataset, num_replicas=dist.get_world_size(), rank= dist.get_rank()
     )
+
+    
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, sampler=train_sampler, **kwargs 
     )
@@ -183,12 +214,12 @@ def _get_train_data_loader(hvd, args, train_rating_path, test_negative_path, **k
     
     return train_loader, train_sampler, user_num, item_num
 
-def _get_test_data_loader(hvd, args, train_rating_path, test_negative_path, **kwargs):
+def _get_test_data_loader(dist, args, train_rating_path, test_negative_path, **kwargs):
     '''
     테스트 데이터 셋 생성 및 데이터 로더 생성
     [중요] 테스트 로더에서는 sampler를 생성을 하지 않았음. 샘플러 생성시에 결과(HR, NDCG) 의 값이 낮게 나와서 삭제 함. (현재 이유를 정확히 모르겠음.)
     '''
-    if hvd.rank() == 0:    
+    if dist.get_rank() == 0:
         logger.info("Get test data sampler and data loader")    
     
     train_data, test_data, user_num ,item_num, train_mat = data_utils.load_all_script(train_rating_path, test_negative_path)
@@ -205,7 +236,7 @@ def _get_test_data_loader(hvd, args, train_rating_path, test_negative_path, **kw
     return test_loader
 
         
-def load_model_network(hvd, user_num, item_num, args):        
+def load_model_network(dist, user_num, item_num, args):        
     '''
     모델 네트워크 로딩 현재 Neuf-end 이기에 항상 else 문이 실행 됨
     '''
@@ -214,12 +245,12 @@ def load_model_network(hvd, user_num, item_num, args):
         assert os.path.exists(config.MLP_model_path), 'lack of MLP model'
         GMF_model = torch.load(config.GMF_model_path)
         MLP_model = torch.load(config.MLP_model_path)
-        if hvd.rank() == 0:
+        if dist.get_rank() == 0:
             logger.info("Pretrained model is used")        
     else:
         GMF_model = None
         MLP_model = None
-        if hvd.rank() == 0:        
+        if dist.get_rank() == 0:
             logger.info("Pretrained model is NOT used")            
 
     NCF_model = model.NCF(user_num, item_num, args.factor_num, args.num_layers, 
@@ -254,7 +285,7 @@ def test(args, model, epoch, test_loader, best_hr, model_dir):
     return best_hr, best_ndcg, best_epoch
     
     
-def train_epoch(hvd, args, model, train_loader, optimizer, epoch, device, sampler=None):
+def train_epoch(dist, args, model, train_loader, optimizer, epoch, device, sampler=None):
     '''
     훈련 루프 실행
     '''
@@ -277,8 +308,8 @@ def train_epoch(hvd, args, model, train_loader, optimizer, epoch, device, sample
         loss = loss_function(prediction, label)
         loss.backward()
         optimizer.step()
-            
-        if (hvd.rank() == 0) & (batch_idx % args.log_interval == 0):
+
+        if (dist.get_rank() == 0) & (batch_idx % args.log_interval == 0):
             logger.info(
                 "Train Epoch: {} [{}/{} ({:.0f}%)] Loss={:.6f};".format(
                     epoch,
@@ -288,9 +319,6 @@ def train_epoch(hvd, args, model, train_loader, optimizer, epoch, device, sample
                     loss.item(),
                 )
             )
-
-
-    
     
 
 def _save_model(model, model_dir, model_weight_file_name):

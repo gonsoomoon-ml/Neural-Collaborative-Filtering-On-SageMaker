@@ -120,11 +120,11 @@ class NCFData(data.Dataset):
         self.labels_fill = labels_ps + labels_ng
         
         # 데이터 셔플링
-        print("### Shuffling data in dataset")
-        shuffle_feature, shuffle_label = self._shuffle_list(self.features_fill, self.labels_fill)
+#         print("### Shuffling data in dataset")
+#         shuffle_feature, shuffle_label = self._shuffle_list(self.features_fill, self.labels_fill)
         
-        self.features_fill = shuffle_feature
-        self.labels_fill = shuffle_label
+#         self.features_fill = shuffle_feature
+#         self.labels_fill = shuffle_label
 
         
         

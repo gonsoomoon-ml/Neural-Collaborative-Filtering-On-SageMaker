@@ -4,6 +4,7 @@ assert dataset in ['ml-1m', 'pinterest-20']
 
 # model name 
 model = 'NeuMF-end'
+# model = 'NeuMF-pre' # 아래 pth 파일이 없어서 에러 발생
 assert model in ['MLP', 'GMF', 'NeuMF-end', 'NeuMF-pre']
 
 main_path = '../data/'
