@@ -45,6 +45,12 @@ NeuMF (with pre-training)	 | 0.720 | 0.439 | 0.879 | 0.555
     - 2.2.NCF-Inference-SageMaker.ipynb
         - 세이지 메이커 배포 및 서빙을 전체 실행
 
+### [중요] Clean up
+- Cleanup.ipynb
+    - 리소스 삭제 입니다. 꼭 확인하시고 지워 주세요. 추가 과금이 발생할 수 있습니다.
+
+
+
 # 3. 상세 폴더 구성
 ```
  |-0_Setup_Environment
