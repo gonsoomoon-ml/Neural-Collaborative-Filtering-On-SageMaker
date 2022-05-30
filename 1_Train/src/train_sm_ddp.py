@@ -28,7 +28,7 @@ logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def train_horovod(args):
+def train_sm_ddp(args):
     '''
     1. args 를 받아서 입력 데이터 로딩
     2. 데이터 세트 생성
@@ -44,6 +44,7 @@ def train_horovod(args):
     from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
 
     dist.init_process_group(backend='smddp')    
+
 
     ######################    
     # DDP 코드 : 2. 배치 사이즈 결정       
@@ -414,5 +415,5 @@ if __name__ == "__main__":
     #### 훈련 함수 콜
     ##################################
     
-    train_horovod(args)
+    train_sm_ddp(args)
 
