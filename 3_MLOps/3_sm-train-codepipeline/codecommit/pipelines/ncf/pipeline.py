@@ -196,10 +196,27 @@ def get_pipeline(
     instance_count = 1
     
     # source_dir = s3_code_uri 는 S3 의 경로를 입력한다.
+    # 데이타의 위치를 code_location.json" 에서 가져온다.
+    import json
+    json_file_name = "code_location.json"    
+    # Opening JSON file
+    with open(json_file_name, 'r') as openfile:
+
+        # Reading from json file
+        json_object = json.load(openfile)
+
+    print("##### S3 Code Location #########")
+    print("s3_code_uri: " , json_object["s3_code_uri"])
+    print("################################")    
+
+    
+    s3_code_uri = json_object["s3_code_uri"]
     
     host_estimator = PyTorch(
-        entry_point=entry_point_code,   
-        source_dir = s3_code_uri,
+#        entry_point=entry_point_code,   
+        entry_point="train.py",           
+#        source_dir = "src",
+       source_dir = s3_code_uri,        
         role=role,
         #output_path = estimator_output_path,    
         framework_version='1.8.1',

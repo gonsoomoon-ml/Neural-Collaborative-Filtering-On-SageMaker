@@ -9,7 +9,7 @@ phases:
   
   build:
     commands:
-      - python pipelines/upload_code.py    
+      - python pipelines/upload_code.py --code-repository-name $code_repository_name --bucket $TEMPLATE_BUCKET
       - export PYTHONUNBUFFERED=TRUE
       - export SAGEMAKER_PROJECT_NAME_ID="${SAGEMAKER_PROJECT_NAME}-${SAGEMAKER_PROJECT_ID}"
       - |
