@@ -32,22 +32,7 @@ class Mlops2Stack(Stack):
         codepipeline_role = self.create_iam_role_for_codepipeline()
         
         
-        ## setting parameters
-        #repository_name = "mlops-nb"
         
-        
-        ## Create CodeCommit repository
-        #repo = codecommit.Repository(self, "Repository",
-        #                             repository_name = repository_name,
-        #                             description = "MLOPs repository")
-        
-        ## Pre-requirement : Create S3 Bucket (ex : mlops-demo-cdk) manually
-        #bucket = s3.Bucket(self, "mlops-demo-cdk")
-        #bucket_name = bucket.bucket_name
-        #bucket_name = "mlops-demo-cdk"
-
-
-        ## Create SageMaker Notebook with SageMaker_role
         
 
 
@@ -105,26 +90,3 @@ class Mlops2Stack(Stack):
             ],  
         )
         return CodePipelineRole
-
-
-    def create_lambda_for_uploading_buildspec(self):
-        lambda_role = iam.Role(
-            self,
-            "LambdaRoleInCodecommitHandler",
-            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonRekognitionFullAccess"),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AWSCodeCommitFullAccess"),
-            ],
-        )
-        handler = _lambda.Function(
-            self,
-            "Codecommit-handler",
-            role=lambda_role,
-            runtime=_lambda.Runtime.PYTHON_3_9,
-            handler="CodecommitHandler.handler",
-            # S3에 있는 buildsepc.yml 파일을 codecommit repository에 git add 하는 코드 필요
-        )
-        
