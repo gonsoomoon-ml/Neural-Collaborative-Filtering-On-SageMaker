@@ -124,8 +124,6 @@ def get_pipeline_custom_tags(new_tags, region, sagemaker_project_arn=None):
 
 def get_pipeline(
     s3_input_data_uri,    
-    s3_code_uri,        
-    entry_point_code,
     project_prefix,
     region,
     sagemaker_project_arn=None,
