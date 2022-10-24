@@ -7,6 +7,8 @@
 
 - 0.0.Setup_Environment.ipynb
     - 역할 및 권한 필요한 것에 대한 가이드
+    - ./CloudFormation/MLOPS-IAM.yaml 을 CloudFormation에서 Stack 배포하여 생성
+    - SageMaker 노트북에서 각 Role에 대한 ARN 이 필요함
     
         
 - 1.1.create_codecommit.ipynb
