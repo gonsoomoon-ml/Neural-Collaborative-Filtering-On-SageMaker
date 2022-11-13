@@ -2,20 +2,9 @@ import argparse
 import os
 import json
 import sys
+sys.path.append('./src')
 
-def resource_check():
-    import os, subprocess
-    
-    result = subprocess.run(['find', '.'], stdout=subprocess.PIPE)
-    print("Files in Subdirector : ", result.stdout.decode('utf-8'))        
-
-resource_check()
-    
-
-BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-
-
-from train_lib import train
+from train_lib import train_metric
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -31,6 +20,9 @@ if __name__ == "__main__":
     
         
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])    
+    parser.add_argument('--output-data-dir', type=str, default=os.environ.get('SM_OUTPUT_DATA_DIR'))
+
+    
            
     
     ##################################
@@ -87,5 +79,5 @@ if __name__ == "__main__":
     #### 훈련 함수 콜
     ##################################
     
-    train(args)
+    train_metric(args)
 

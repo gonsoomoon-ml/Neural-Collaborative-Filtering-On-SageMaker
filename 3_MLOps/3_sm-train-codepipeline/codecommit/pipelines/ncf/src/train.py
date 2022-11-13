@@ -2,18 +2,7 @@ import argparse
 import os
 import json
 import sys
-
-def resource_check():
-    import os, subprocess
-    
-    result = subprocess.run(['find', '.'], stdout=subprocess.PIPE)
-    print("Files in Subdirector : ", result.stdout.decode('utf-8'))        
-
-resource_check()
-    
-
-BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-
+sys.path.append('./src')
 
 from train_lib import train
 

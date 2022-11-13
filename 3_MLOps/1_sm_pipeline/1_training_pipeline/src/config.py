@@ -7,7 +7,7 @@ model = 'NeuMF-end'
 # model = 'NeuMF-pre' # 아래 pth 파일이 없어서 에러 발생
 assert model in ['MLP', 'GMF', 'NeuMF-end', 'NeuMF-pre']
 
-main_path = '../../data/'
+main_path = '../../../data/'
 
 train_rating = main_path + '{}.train.rating'.format(dataset)
 test_rating = main_path + '{}.test.rating'.format(dataset)

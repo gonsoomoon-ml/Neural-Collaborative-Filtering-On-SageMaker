@@ -47,7 +47,6 @@ from sagemaker.workflow.model_step import ModelStep
 from sagemaker.model import Model
 from sagemaker.workflow.pipeline_context import PipelineSession
 
-
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -109,30 +108,40 @@ def get_pipeline_session(region, default_bucket):
         default_bucket=default_bucket,
     )
 
-def get_pipeline_custom_tags(new_tags, region, sagemaker_project_arn=None):
-    try:
-        sm_client = get_sagemaker_client(region)
-        response = sm_client.list_tags(
-            ResourceArn=sagemaker_project_arn)
-        project_tags = response["Tags"]
-        for project_tag in project_tags:
-            new_tags.append(project_tag)
-    except Exception as e:
-        print(f"Error getting project tags: {e}")
-    return new_tags
+# def get_pipeline_custom_tags(new_tags, region, sagemaker_project_arn=None):
+#     try:
+#         sm_client = get_sagemaker_client(region)
+#         response = sm_client.list_tags(
+#             ResourceArn=sagemaker_project_arn)
+#         project_tags = response["Tags"]
+#         for project_tag in project_tags:
+#             new_tags.append(project_tag)
+#     except Exception as e:
+#         print(f"Error getting project tags: {e}")
+#     return new_tags
 
+import os
 
+def print_files_in_dir(root_dir, prefix):
+    files = os.listdir(root_dir)
+    for file in files:
+        path = os.path.join(root_dir, file)
+        print(prefix + path)
+        if os.path.isdir(path):
+            print_files_in_dir(path, prefix + "    ")
+
+            
 def get_pipeline(
     s3_input_data_uri,    
     project_prefix,
     region,
-    sagemaker_project_arn=None,
-    role=None,
+    inference_image_uri = None,
+    role=None, # SAGEMAKER_PIPELINE_ROLE_ARN 이 넘어옴.
     default_bucket=None,
-    model_package_group_name="AbalonePackageGroup",
-    pipeline_name="AbalonePipeline",
-    base_job_prefix="Abalone",
-    processing_instance_type="ml.m5.xlarge",
+    model_package_group_name= None,
+    pipeline_name= None,
+    base_job_prefix= None,
+    # processing_instance_type= None,
     training_instance_type="ml.p3.2xlarge",
 ):
     """Gets a SageMaker ML Pipeline instance working with on abalone data.
@@ -145,55 +154,45 @@ def get_pipeline(
     Returns:
         an instance of a pipeline
     """
+    ##################################
+    ## 입력 파라미터 확인
+    ##################################        
+    print("######### get_pipeline() input parameter ###############")
     print(f"### BASE_DIR: {BASE_DIR}")    
+    print(f"s3_input_data_uri: {s3_input_data_uri}")        
+    print(f"project_prefix: {project_prefix}")            
+    # print(f"sagemaker_project_arn: {sagemaker_project_arn}")            
+    print(f"role: {role}")            
+    print(f"default_bucket: {default_bucket}")            
+    print(f"model_package_group_name: {model_package_group_name}")            
+    print(f"pipeline_name: {pipeline_name}")            
+    print(f"base_job_prefix: {base_job_prefix}")                
+    # print(f"processing_instance_type: {processing_instance_type}")                
+    print(f"training_instance_type: {training_instance_type}")                    
+    ##################################
+    ## 현재 폴더 기준으로 하위 폴더 및 파일 보기
+    ##################################        
+    print("######### Look at subfolder and files #########")    
+    print_files_in_dir(root_dir =".", prefix="")                    
+    
+    ##################################
+    ## 환경 초기화
+    ##################################        
+    
     
     sagemaker_session = get_session(region, default_bucket)
     if role is None:
         role = sagemaker.session.get_execution_role(sagemaker_session)
+        
+    print("role: ", role) # SAGEMAKER_PIPELINE_ROLE_ARN 이 넘어옴.         
 
     pipeline_session = get_pipeline_session(region, default_bucket)
 
-    # parameters for pipeline execution
-    # processing_instance_count = ParameterInteger(name="ProcessingInstanceCount", default_value=1)
-    # model_approval_status = ParameterString(
-    #     name="ModelApprovalStatus", default_value="PendingManualApproval"
-    # )
-    # input_data = ParameterString(
-    #     name="InputDataUrl",
-    #     default_value=f"s3://sagemaker-servicecatalog-seedcode-{region}/dataset/abalone-dataset.csv",
-    # )
-    
-    s3_data_loc = ParameterString(
-        name="InputData",
-        default_value=s3_input_data_uri,
-    )
-
-    model_approval_status = ParameterString(
-        name="ModelApprovalStatus", default_value="PendingManualApproval"
-    )
-
-    host_hyperparameters = {'epochs': 1, 
-                           'lr': 0.001,
-                           'batch_size': 256,
-                           'top_k' : 10,
-                           'dropout' : 0.0,
-                           'factor_num' : 32,
-                           'num_layers' : 3,
-                           'num_ng' : 4,
-                           'test_num_ng' : 99,                   
-                        }      
-    
-
-    from sagemaker.pytorch import PyTorch
-
-    # estimator_output_path = f's3://{default_bucket}/{project_prefix}/training_jobs'
-    # print("estimator_output_path: \n", estimator_output_path)
+    ##################################
+    ## 소스 코드 다운로드
+    ##################################        
 
 
-    instance_type = 'ml.p3.2xlarge'
-    instance_count = 1
-    
-    # source_dir = s3_code_uri 는 S3 의 경로를 입력한다.
     # 데이타의 위치를 code_location.json" 에서 가져온다.
     import json
     json_file_name = "code_location.json"    
@@ -210,21 +209,67 @@ def get_pipeline(
     
     s3_code_uri = json_object["s3_code_uri"]
     
+    
+    ##################################
+    ## 파이프라인 파라미터 정의
+    ##################################        
+    
+    s3_data_loc = ParameterString(
+        name="InputData",
+        default_value=s3_input_data_uri,
+    )
+
+    model_approval_status = ParameterString(
+        name="ModelApprovalStatus", default_value="PendingManualApproval"
+    )
+    
+    ##################################
+    ## 모델 훈련 스텝
+    ##################################    
+
+    host_hyperparameters = {'epochs': 1, 
+                           'lr': 0.001,
+                           'batch_size': 256,
+                           'top_k' : 10,
+                           'dropout' : 0.0,
+                           'factor_num' : 32,
+                           'num_layers' : 3,
+                           'num_ng' : 4,
+                           'test_num_ng' : 99,                   
+                        }      
+    
+    # 훈련 메트릭 정의하여 킆라우드 워치에서 보기
+    metric_definitions=[
+           {'Name': 'HR', 'Regex': 'HR=(.*?);'},
+           {'Name': 'NDCG', 'Regex': 'NDCG=(.*?);'},
+           {'Name': 'Loss', 'Regex': 'Loss=(.*?);'}        
+        ]
+
+    
+    from sagemaker.pytorch import PyTorch
+
+    estimator_output_path = f's3://{default_bucket}/{project_prefix}/training_jobs'
+    print("estimator_output_path: \n", estimator_output_path)
+
+
+    instance_type = 'ml.p3.2xlarge'
+    instance_count = 1
+        
+    # source_dir = s3_code_uri 는 S3 의 경로를 입력한다.
+    
     host_estimator = PyTorch(
-#        entry_point=entry_point_code,   
         entry_point="train.py",           
-#        source_dir = "src",
-       source_dir = s3_code_uri,        
+        source_dir = s3_code_uri,        
         role=role,
-        #output_path = estimator_output_path,    
+        output_path = estimator_output_path,    
         framework_version='1.8.1',
         py_version='py3',
         disable_profiler = True,
         instance_count=instance_count,
         instance_type=instance_type,
-        session = sagemaker.Session(), # 세이지 메이커 세션
+        session = pipeline_session, # 세이지 메이커 세션
         hyperparameters=host_hyperparameters,
-        # metric_definitions = metric_definitions
+        metric_definitions = metric_definitions
 
     )
     
@@ -245,7 +290,51 @@ def get_pipeline(
         }
     )
 
-    ## 모델 등록 스텝
+    ##################################
+    ## 모델 아티펙트 리패키징 람다 스텝 정의
+    ##################################    
+    
+    from sagemaker.lambda_helper import Lambda
+    from sagemaker.workflow.lambda_step import (
+        LambdaStep,
+        LambdaOutput,
+        LambdaOutputTypeEnum,
+    )
+
+    function_name = "sagemaker-lambda-step-repackage-model-artifact"
+    repackage_lambda_script_path = f'{BASE_DIR}/iam_repackage_model_artifact.py'
+    print("repackage_lambda_script_path: \n", repackage_lambda_script_path)
+    
+    print("function_name: \n", function_name)
+    # Lambda helper class can be used to create the Lambda function
+    func_repackage_model = Lambda(
+        function_name=function_name,
+        execution_role_arn=role,
+        script=repackage_lambda_script_path,        
+        handler="iam_repackage_model_artifact.lambda_handler",
+    )
+
+    output_param_1 = LambdaOutput(output_name="statusCode", output_type=LambdaOutputTypeEnum.String)
+    output_param_2 = LambdaOutput(output_name="body", output_type=LambdaOutputTypeEnum.String)
+    output_param_3 = LambdaOutput(output_name="S3_Model_URI", output_type=LambdaOutputTypeEnum.String)
+
+    step_repackage_lambda = LambdaStep(
+        name="LambdaRepackageStep",
+        lambda_func=func_repackage_model,
+        inputs={
+            "source_path" : s3_code_uri,
+            "model_path": step_train.properties.ModelArtifacts.S3ModelArtifacts,
+    #        "model_path": artifact_path,        
+            "bucket" : default_bucket,
+            "prefix" : "ncf/repackage/model"
+        },
+        outputs=[output_param_1, output_param_2, output_param_3],
+    )
+    
+    
+    ##################################
+    ## 모델 패키지 그룹 생성 
+    ##################################    
     
     import boto3
     sm_client = boto3.client("sagemaker")
@@ -264,243 +353,66 @@ def get_pipeline(
         print('ModelPackageGroup Arn : {}'.format(create_model_pacakge_group_response['ModelPackageGroupArn']))    
     else:
         print(f"{model_package_group_name} exitss")    
-    
-    
-    from sagemaker.workflow.step_collections import RegisterModel
 
-    step_register = RegisterModel(
-        name= "NCF-Model-Registry",
-        estimator=host_estimator,
-        image_uri= step_train.properties.AlgorithmSpecification.TrainingImage,
-        model_data= step_train.properties.ModelArtifacts.S3ModelArtifacts,
+    ##################################
+    ## 모델 등록 스텝
+    ##################################            
+
+    from sagemaker.workflow.model_step import ModelStep
+    from sagemaker.model import Model
+
+    # inference docker image
+#    inference_image_uri = '763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.8.1-gpu-py3'    
+
+    model = Model(
+        image_uri=inference_image_uri,
+        model_data = step_repackage_lambda.properties.Outputs["S3_Model_URI"],
+        role=role,
+        sagemaker_session=pipeline_session,
+    )
+
+    register_model_step_args = model.register(
         content_types=["text/csv"],
         response_types=["text/csv"],
-        inference_instances=["ml.p2.xlarge", "ml.m5.xlarge"],
-        transform_instances=["ml.m5.xlarge"],
+        inference_instances=["ml.g4dn.xlarge", "ml.p2.xlarge"],
+        transform_instances=["ml.g4dn.xlarge"],
         model_package_group_name=model_package_group_name,
         approval_status=model_approval_status,
-        # model_metrics=model_metrics,
-    )    
-    
+    )
 
-    # pipeline instance
+    step_model_registration = ModelStep(
+       name="RegisterModel",
+       step_args=register_model_step_args,
+    )
+    
+#     from sagemaker.workflow.step_collections import RegisterModel
+
+#     step_register = RegisterModel(
+#         name= "NCF-Model-Registry",
+#         estimator=host_estimator,
+#         image_uri= step_train.properties.AlgorithmSpecification.TrainingImage,
+#         model_data= step_repackage_lambda.properties.Outputs["S3_Model_URI"],
+#         content_types=["text/csv"],
+#         response_types=["text/csv"],
+#         inference_instances=["ml.p2.xlarge", "ml.m5.xlarge"],
+#         transform_instances=["ml.m5.xlarge"],
+#         model_package_group_name=model_package_group_name,
+#         approval_status=model_approval_status,
+#         # model_metrics=model_metrics,
+#     )    
+    
+    ##################################
+    # pipeline creation
+    ##################################    
     pipeline = Pipeline(
         name=pipeline_name,
         parameters=[
             s3_data_loc,
             model_approval_status,
         ],
-        steps=[step_train,  step_register],
+        steps=[step_train,  step_repackage_lambda, step_model_registration],
         sagemaker_session=pipeline_session,
     )
     return pipeline
 
 
-
-# def get_pipeline(
-#     region,
-#     sagemaker_project_arn=None,
-#     role=None,
-#     default_bucket=None,
-#     model_package_group_name="AbalonePackageGroup",
-#     pipeline_name="AbalonePipeline",
-#     base_job_prefix="Abalone",
-#     processing_instance_type="ml.m5.xlarge",
-#     training_instance_type="ml.m5.xlarge",
-# ):
-#     """Gets a SageMaker ML Pipeline instance working with on abalone data.
-
-#     Args:
-#         region: AWS region to create and run the pipeline.
-#         role: IAM role to create and run steps and pipeline.
-#         default_bucket: the bucket to use for storing the artifacts
-
-#     Returns:
-#         an instance of a pipeline
-#     """
-#     sagemaker_session = get_session(region, default_bucket)
-#     if role is None:
-#         role = sagemaker.session.get_execution_role(sagemaker_session)
-
-#     pipeline_session = get_pipeline_session(region, default_bucket)
-
-#     # parameters for pipeline execution
-#     processing_instance_count = ParameterInteger(name="ProcessingInstanceCount", default_value=1)
-#     model_approval_status = ParameterString(
-#         name="ModelApprovalStatus", default_value="PendingManualApproval"
-#     )
-#     input_data = ParameterString(
-#         name="InputDataUrl",
-#         default_value=f"s3://sagemaker-servicecatalog-seedcode-{region}/dataset/abalone-dataset.csv",
-#     )
-
-#     # processing step for feature engineering
-#     sklearn_processor = SKLearnProcessor(
-#         framework_version="0.23-1",
-#         instance_type=processing_instance_type,
-#         instance_count=processing_instance_count,
-#         base_job_name=f"{base_job_prefix}/sklearn-abalone-preprocess",
-#         sagemaker_session=pipeline_session,
-#         role=role,
-#     )
-#     step_args = sklearn_processor.run(
-#         outputs=[
-#             ProcessingOutput(output_name="train", source="/opt/ml/processing/train"),
-#             ProcessingOutput(output_name="validation", source="/opt/ml/processing/validation"),
-#             ProcessingOutput(output_name="test", source="/opt/ml/processing/test"),
-#         ],
-#         code=os.path.join(BASE_DIR, "preprocess.py"),
-#         arguments=["--input-data", input_data],
-#     )
-#     step_process = ProcessingStep(
-#         name="PreprocessAbaloneData",
-#         step_args=step_args,
-#     )
-
-#     # training step for generating model artifacts
-#     model_path = f"s3://{sagemaker_session.default_bucket()}/{base_job_prefix}/AbaloneTrain"
-#     image_uri = sagemaker.image_uris.retrieve(
-#         framework="xgboost",
-#         region=region,
-#         version="1.0-1",
-#         py_version="py3",
-#         instance_type=training_instance_type,
-#     )
-#     xgb_train = Estimator(
-#         image_uri=image_uri,
-#         instance_type=training_instance_type,
-#         instance_count=1,
-#         output_path=model_path,
-#         base_job_name=f"{base_job_prefix}/abalone-train",
-#         sagemaker_session=pipeline_session,
-#         role=role,
-#     )
-#     xgb_train.set_hyperparameters(
-#         objective="reg:linear",
-#         num_round=50,
-#         max_depth=5,
-#         eta=0.2,
-#         gamma=4,
-#         min_child_weight=6,
-#         subsample=0.7,
-#         silent=0,
-#     )
-#     step_args = xgb_train.fit(
-#         inputs={
-#             "train": TrainingInput(
-#                 s3_data=step_process.properties.ProcessingOutputConfig.Outputs[
-#                     "train"
-#                 ].S3Output.S3Uri,
-#                 content_type="text/csv",
-#             ),
-#             "validation": TrainingInput(
-#                 s3_data=step_process.properties.ProcessingOutputConfig.Outputs[
-#                     "validation"
-#                 ].S3Output.S3Uri,
-#                 content_type="text/csv",
-#             ),
-#         },
-#     )
-#     step_train = TrainingStep(
-#         name="TrainAbaloneModel",
-#         step_args=step_args,
-#     )
-
-#     # processing step for evaluation
-#     script_eval = ScriptProcessor(
-#         image_uri=image_uri,
-#         command=["python3"],
-#         instance_type=processing_instance_type,
-#         instance_count=1,
-#         base_job_name=f"{base_job_prefix}/script-abalone-eval",
-#         sagemaker_session=pipeline_session,
-#         role=role,
-#     )
-#     step_args = script_eval.run(
-#         inputs=[
-#             ProcessingInput(
-#                 source=step_train.properties.ModelArtifacts.S3ModelArtifacts,
-#                 destination="/opt/ml/processing/model",
-#             ),
-#             ProcessingInput(
-#                 source=step_process.properties.ProcessingOutputConfig.Outputs[
-#                     "test"
-#                 ].S3Output.S3Uri,
-#                 destination="/opt/ml/processing/test",
-#             ),
-#         ],
-#         outputs=[
-#             ProcessingOutput(output_name="evaluation", source="/opt/ml/processing/evaluation"),
-#         ],
-#         code=os.path.join(BASE_DIR, "evaluate.py"),
-#     )
-#     evaluation_report = PropertyFile(
-#         name="AbaloneEvaluationReport",
-#         output_name="evaluation",
-#         path="evaluation.json",
-#     )
-#     step_eval = ProcessingStep(
-#         name="EvaluateAbaloneModel",
-#         step_args=step_args,
-#         property_files=[evaluation_report],
-#     )
-
-#     # register model step that will be conditionally executed
-#     model_metrics = ModelMetrics(
-#         model_statistics=MetricsSource(
-#             s3_uri="{}/evaluation.json".format(
-#                 step_eval.arguments["ProcessingOutputConfig"]["Outputs"][0]["S3Output"]["S3Uri"]
-#             ),
-#             content_type="application/json"
-#         )
-#     )
-#     model = Model(
-#         image_uri=image_uri,
-#         model_data=step_train.properties.ModelArtifacts.S3ModelArtifacts,
-#         sagemaker_session=pipeline_session,
-#         role=role,
-#     )
-#     step_args = model.register(
-#         content_types=["text/csv"],
-#         response_types=["text/csv"],
-#         inference_instances=["ml.t2.medium", "ml.m5.large"],
-#         transform_instances=["ml.m5.large"],
-#         model_package_group_name=model_package_group_name,
-#         approval_status=model_approval_status,
-#         model_metrics=model_metrics,
-#     )
-#     step_register = ModelStep(
-#         name="RegisterAbaloneModel",
-#         step_args=step_args,
-#     )
-
-#     # condition step for evaluating model quality and branching execution
-#     cond_lte = ConditionLessThanOrEqualTo(
-#         left=JsonGet(
-#             step_name=step_eval.name,
-#             property_file=evaluation_report,
-#             json_path="regression_metrics.mse.value"
-#         ),
-#         right=6.0,
-#     )
-#     step_cond = ConditionStep(
-#         name="CheckMSEAbaloneEvaluation",
-#         conditions=[cond_lte],
-#         if_steps=[step_register],
-#         else_steps=[],
-#     )
-
-#     # pipeline instance
-#     pipeline = Pipeline(
-#         name=pipeline_name,
-#         parameters=[
-#             processing_instance_type,
-#             processing_instance_count,
-#             training_instance_type,
-#             model_approval_status,
-#             input_data,
-#         ],
-#         steps=[step_process, step_train, step_eval, step_cond],
-#         sagemaker_session=pipeline_session,
-#     )
-#     return pipeline

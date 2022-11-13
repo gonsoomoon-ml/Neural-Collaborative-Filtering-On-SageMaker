@@ -10,20 +10,21 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
  
-# Custom Module
-import model
-import config
-import evaluate
-from evaluate import ndcg, hit
-import data_utils
+    
+import argparse
+import os
+import json
+import sys
 
+import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 # logger.setLevel(logging.WARNING)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def train(args):
+
+def train_metric(args):
     '''
     1. args 를 받아서 입력 데이터 로딩
     2. 데이터 세트 생성
@@ -104,13 +105,15 @@ def train(args):
 
         
         best_hr, best_ndcg, best_epoch = test(args, NCF_model, epoch, test_loader, best_hr, model_dir)
-    
         
+                
         
     print("End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}".format(
                                         best_epoch, best_hr, best_ndcg))
+    
+    # metric 을 metrics.json 으로 저장하여 S3에 업로드
+    save_metric(best_hr, best_ndcg, args, logger)
 
-        
 
 def _get_train_data_loader(args, train_rating_path, test_negative_path):
     '''
@@ -238,118 +241,80 @@ def _save_model(model, model_dir, model_weight_file_name):
     torch.save(model.state_dict(), path)
 
     
-def train_metric(args):
-    '''
-    1. args 를 받아서 입력 데이터 로딩
-    2. 데이터 세트 생성
-    3. 모델 네트워크 생성
-    4. 훈련 푸프 실행
-    5. 모델 저장
-    '''
-    #######################################
-    ## 환경 확인     
-    #######################################
-    
-    logger.info("##### Args: \n {}".format(args))
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    logger.debug("device: ".format(device))    
-
-    
-    #######################################
-    ## 데이타 저장 위치 및 모델 경로 저장 위치 확인
-    #######################################
-    
-    #### Parsing argument  ##########################        
-    train_data_dir = args.train_data_dir
-    test_data_dir = args.test_data_dir    
-    model_dir = args.model_dir        
-    
-    logger.info("args.train_data_dir: ".format(train_data_dir))
-    logger.info("args.test_data_dir: ".format(test_data_dir))  
-    logger.info("args.model_dir: ".format(model_dir))  
-    
-    train_rating_path = os.path.join(train_data_dir, 'ml-1m.train.rating')
-    test_negative_path = os.path.join(train_data_dir, 'ml-1m.test.negative')
-
-    
-    #######################################
-    ## 데이터 로딩 및 데이터 세트 생성 
-    #######################################
-
-    logger.info("=====> data loading <===========")        
-    
-    train_loader, user_num, item_num = _get_train_data_loader(args, train_rating_path, test_negative_path)
-    test_loader =  _get_test_data_loader(args, train_rating_path, test_negative_path)
     
 
-    #######################################
-    ## 모델 네트워크 생성
-    #######################################
-    
-    NCF_model = load_model_network(user_num, item_num, args)            
-    NCF_model.to(device)    
-    
-    #######################################
-    ## 손실 함수 및 옵티마이저 정의
-    #######################################    
-    
-    if config.model == 'NeuMF-pre':
-        optimizer = optim.SGD(NCF_model.parameters(), lr=args.lr)
-    else:
-        optimizer = optim.Adam(NCF_model.parameters(), lr=args.lr)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
 
+    ##################################
+    #### 세이지 메이커 프레임워크의 도커 컨테이너 환경 변수 인자
+    ##################################
 
-    #######################################
-    ## 훈련 루프 실행
-    #######################################
+    parser.add_argument('--train-data-dir', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
     
-    count, best_hr = 0, 0
-    train_loader.dataset.ng_sample()    
-    print("=====> Starting New Traiing <===========")
+    parser.add_argument('--test-data-dir', type=str, default=os.environ['SM_CHANNEL_TEST'])
 
-    for epoch in range(args.epochs):
-        start_time = time.time()
-
-        train_epoch(NCF_model, train_loader, optimizer, epoch, device, sampler=None)            
+    
         
-        elapsed_time = time.time() - start_time    
-        print("The time elapse of epoch {:03d}".format(epoch) + " is: " + 
-                    time.strftime("%H: %M: %S", time.gmtime(elapsed_time)))
-
-        
-        best_hr, best_ndcg, best_epoch = test(args, NCF_model, epoch, test_loader, best_hr, model_dir)
-        
-                
-        
-    print("End. Best epoch {:03d}: HR = {:.3f}, NDCG = {:.3f}".format(
-                                        best_epoch, best_hr, best_ndcg))
-    
-    # metric 을 metrics.json 으로 저장하여 S3에 업로드
-    save_metric(best_hr, best_ndcg, args, logger)
-    
-
-def save_metric(best_hr, best_ndcg, args, logger):    
-    '''
-    추천 메트릭을 json 형태로 저장하여 s3 로 업로딩 합니다.
-    '''
-    metrics_data = {
-        'recommendation_metrics': {
-            'validation:best_hr': { 'value': best_hr},
-            'validation:best_ndcg': {'value': best_ndcg}
-        }
-    }
-    
-    metrics_location = args.output_data_dir + '/metrics.json'    
-    with open(metrics_location, 'w') as f:
-        json.dump(metrics_data, f)
-    best_hr = round(best_hr,4)
-    best_ndcg = round(best_ndcg,4)    
-    logger.info(f"###### metrics is saved  at {metrics_location} with best_hr: {best_hr} best_ndcg : {best_ndcg}  ")
-
-
-        
-
-
+    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])    
+    parser.add_argument('--output-data-dir', type=str, default=os.environ.get('SM_OUTPUT_DATA_DIR'))
 
     
+           
+    
+    ##################################
+    #### 사용자 정의 커맨드 인자
+    ##################################
+
+    parser.add_argument("--lr", 
+        type=float, 
+        default=0.001, 
+        help="learning rate")
+    parser.add_argument("--dropout", 
+        type=float,
+        default=0.0,  
+        help="dropout rate")
+    parser.add_argument("--batch_size", 
+        type=int, 
+        default=256, 
+        help="batch size for training")
+    parser.add_argument("--epochs", 
+        type=int,
+        default=20,  
+        help="training epoches")
+    parser.add_argument("--top_k", 
+        type=int, 
+        default=10, 
+        help="compute metrics@top_k")
+    parser.add_argument("--factor_num", 
+        type=int,
+        default=32, 
+        help="predictive factors numbers in the model")
+    parser.add_argument("--num_layers", 
+        type=int,
+        default=3, 
+        help="number of layers in MLP model")
+    parser.add_argument("--num_ng", 
+        type=int,
+        default=4, 
+        help="sample negative items for training")
+    parser.add_argument("--test_num_ng", 
+        type=int,
+        default=99, 
+        help="sample part of negative items for testing")
+    parser.add_argument("--out", 
+        default=True,
+        help="save model or not")
+    parser.add_argument("--gpu", 
+        type=str,
+        default="0",  
+        help="gpu card ID")
+    args = parser.parse_args()
+    
+
+    ##################################
+    #### 훈련 함수 콜
+    ##################################
+    
+    train_metric(args)
+
