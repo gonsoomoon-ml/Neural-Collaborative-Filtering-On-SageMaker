@@ -339,7 +339,7 @@ def get_pipeline(
     import boto3
     sm_client = boto3.client("sagemaker")
 
-    model_package_group_name = f"{project_prefix}"
+    # model_package_group_name = f"{project_prefix}"
     model_package_group_input_dict = {
      "ModelPackageGroupName" : model_package_group_name,
      "ModelPackageGroupDescription" : "Sample model package group"
