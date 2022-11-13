@@ -385,22 +385,6 @@ def get_pipeline(
        step_args=register_model_step_args,
     )
     
-#     from sagemaker.workflow.step_collections import RegisterModel
-
-#     step_register = RegisterModel(
-#         name= "NCF-Model-Registry",
-#         estimator=host_estimator,
-#         image_uri= step_train.properties.AlgorithmSpecification.TrainingImage,
-#         model_data= step_repackage_lambda.properties.Outputs["S3_Model_URI"],
-#         content_types=["text/csv"],
-#         response_types=["text/csv"],
-#         inference_instances=["ml.p2.xlarge", "ml.m5.xlarge"],
-#         transform_instances=["ml.m5.xlarge"],
-#         model_package_group_name=model_package_group_name,
-#         approval_status=model_approval_status,
-#         # model_metrics=model_metrics,
-#     )    
-    
     ##################################
     # pipeline creation
     ##################################    
