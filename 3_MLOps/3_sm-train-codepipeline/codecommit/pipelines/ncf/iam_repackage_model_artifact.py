@@ -87,7 +87,7 @@ def lambda_handler(event, context):
 
 
     ####################################
-    ## temp 의 파일을 압추갛여 repackage 에 저장
+    ## temp 의 파일을 압축하여 repackage 에 저장
     ####################################    
     repackage_dir = f"{base_dir}/repackage"
     os.makedirs(repackage_dir, exist_ok=True)
@@ -118,7 +118,6 @@ def lambda_handler(event, context):
 import os
 import tarfile
 
-# tarfile example
 def create_tar_dir(path, target_file_name):
     '''
     path = 'code_pkg'
@@ -128,18 +127,32 @@ def create_tar_dir(path, target_file_name):
     tar = tarfile.open(target_file_name, 'w:gz')
    
     for i, (root, dirs, files) in enumerate(os.walk(path)):
-        if i == 0:
+        # 현재 폴더에 code 폴더, XXX.pth 일 경우
+        if (len(files) > 0) & (len(dirs) > 0) :
+            print("i:", i, root)
+            print("dirs: ", dirs)
+            print("files: ", files)            
+            print("root: ", root)
+            
             for file_name in files:
                 tar.add(os.path.join(root, file_name), file_name)
+                print("i: ",i,  " Adding file_name : ",file_name)                
+        # code 폴더 처리
         else:
-            subfolder = root.split("/")[1]
-            # print("subfolder: ", subfolder)
+            print("i:", i)
+            print("dirs: ", dirs)
+            print("files: ", files)            
+            print("root: ", root)
+            subfolder = root.split("/")[-1]
+            print("subfolder: ", subfolder)
             for file_name in files:
                 tar.add(os.path.join(root, file_name), f"{subfolder}/{file_name}")
+                print("i: ",i,  "Adding file_name : ",file_name)                
 
     tar.close()
     
     return None
+
 
 def upload_s3_object(bucket, prefix, file_path):
     '''

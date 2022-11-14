@@ -318,6 +318,14 @@ def get_pipeline(
     output_param_2 = LambdaOutput(output_name="body", output_type=LambdaOutputTypeEnum.String)
     output_param_3 = LambdaOutput(output_name="S3_Model_URI", output_type=LambdaOutputTypeEnum.String)
 
+    from datetime import datetime
+    currentDateAndTime = datetime.now()
+
+    currentTime = currentDateAndTime.strftime("%Y-%m-%d-%H-%M-%S")
+    bucket_prefix = f'{project_prefix}/{currentTime}'
+    print("bucket prefix: \n", bucket_prefix)
+    
+    
     step_repackage_lambda = LambdaStep(
         name="LambdaRepackageStep",
         lambda_func=func_repackage_model,
@@ -326,7 +334,7 @@ def get_pipeline(
             "model_path": step_train.properties.ModelArtifacts.S3ModelArtifacts,
     #        "model_path": artifact_path,        
             "bucket" : default_bucket,
-            "prefix" : "ncf/repackage/model"
+            "prefix" : bucket_prefix
         },
         outputs=[output_param_1, output_param_2, output_param_3],
     )
