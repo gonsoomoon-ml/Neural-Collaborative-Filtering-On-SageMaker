@@ -16,37 +16,81 @@ NeuMF (with pre-training)	 | 0.720 | 0.439 | 0.879 | 0.555
 
 이 워크샵은 위의 Pytorch 버전을 SageMaker 에서 훈련 및 서빙을 구현을 했고, SageMaker의 여러가지 장점을 사용하여, 대규모의 데이터 세트에서도 동작할 수 있게 만들었습니다.
 
-# 2. 배우게 될 기술 요소들
-## 2.1. 세이지 메이커 모델 훈련 및 추론
-- 1) 오픈 소스의 코드를 세이지 메이커로 훈련 [1_Train 폴더]
-- 2) 세이지 메이커 서빙 [2_Inference 폴더]
-
-## 2.2 MLOps
-- 1) ML Ops 로서 SageMaker Pipeline 및 AWS Code Pipeline ]3_MLOps 폴더]
-
-# 3. 실습 방법
-## 3.1 [중요 사항]
-- #### 이 워크샵은 ml.p3.2xlarge, ml.p3.8xlarge, ml.p3.16xlarge 세이지 메이커 노트북 인스턴스의 `conda_python3`에서 테스트 되었습니다. (세이지 메이커 스튜디오에서 테스트 안됨)
-
-## 3.2. 세이지 메이커 훈련만 하기
-- [0_Setup_Environment] 의 0.0.Setup-Environment.ipynb 실행하기
-- [1_Train](1_Train/README.md) 폴더를 클릭하시고 README 를 확인 하세요.
-
-## 3.3. 세이지 메이커 훈련 및 추론 하기
-아래의 순서대로 세개의 폴더를 진행 합니다.
-- [0_Setup_Environment] 의 0.0.Setup-Environment.ipynb 실행하기
-- [1_Train](1_Train/README.md) 폴더를 클릭하시고 README 를 확인 하세요.
-- [2_Inference](2_Inference/README.md) 폴더를 클릭하시고 README 를 확인 하세요.
-
-## 3.4. MLOps 하기
-- [0_Setup_Environment] 의 0.0.Setup-Environment.ipynb 실행하기
-- [3_MLOps](3_MLOps/README.md) 폴더를 클릭하시고 README 
+# 2. 주요 파일 
+- ### [중요] 이 워크샵은 ml.p3.2xlarge, ml.p3.8xlarge, ml.p3.16xlarge 세이지 메이커 노트북 인스턴스의 `conda_python3`에서 테스트 되었습니다.
 
 
+- 0_Setup_Environment
+    - 0.0.Setup-Environment.ipynb
+        - 필요 패키지 설치 및 로컬 모드 세팅
+
+
+- 1_Train
+    - 1.1.NCF-Train-Scratch.ipynb
+        - 세이지 메이커 훈련 잡 없이 훈련 코드를 단계별로 노트북에서 실행
+    - 1.2.NCF-Train_Local_Script_Mode.ipynb 
+        - 세이지 메이커 로컬 모드,호스트 모드로 훈련 
+        - 세이지 메이커 Experiment 사용하여 실험 추적        
+    - 1.3.NCF-Train_Horovod.ipynb
+        - 세이지 메이커 호로보드 로컬 모드, 호스트 모드로 훈련 
+    - 1.4..NCF-Train_SM_DDP.ipynb
+        - 세이지 메이커 Data Parallel Training (DDP) 로 로컬 모드, 호스트 모드로 훈련 
+        - [중요] ml.p3.16xlarge 이상의 노트북 인스턴스에서 실행이 가능합니다.
+
+
+- 2_Inference
+    - 2.1.NCF-Inference-Scratch.ipynb
+        - 세이지 메이커 배포를 로컬 모드와 호스틀 모드를 단계별 실행
+        - 추론을 SageMaker Python SDK 및  Boto3 SDK  구현
+    - 2.2.NCF-Inference-SageMaker.ipynb
+        - 세이지 메이커 배포 및 서빙을 전체 실행
 
 ### [중요] Clean up
 - Cleanup.ipynb
     - 리소스 삭제 입니다. 꼭 확인하시고 지워 주세요. 추가 과금이 발생할 수 있습니다.
+
+
+
+# 3. 상세 폴더 구성
+```
+ |-0_Setup_Environment
+ | |-0.0.Setup-Environment.ipynb
+ | |-daemon.json
+ | |-local_mode_setup.sh
+ |-1_Train
+ | |-1.1.NCF-Train-Scratch.ipynb
+ | |-1.2.NCF-Train_Local_Script_Mode.ipynb 
+ | |-1.3.NCF-Train_Horovod.ipynb
+ | |-1.4..NCF-Train_SM_DDP.ipynb
+ | |-src
+ | | |-train.py
+ | | |-train_lib.py
+ | | |-train_horovod.py
+ | | |-train_sm_ddp.py 
+ | | |-data_utils.py
+ | | |-model.py
+ | | |-evaluate.py
+ | | |-requirements.txt
+ | | |-config.py
+ |-data
+ | |-ml-1m.test.negative
+ | |-ml-1m.test.rating
+ | |-ml-1m.train.rating
+ |-2_Inference
+ | |-2.1.NCF-Inference-Scratch.ipynb
+ | |-2.2.NCF-Inference-SageMaker.ipynb
+ | |-src
+ | | |-inference.py
+ | | |-inference_utils.py
+ | | |-data_utils.py
+ | | |-model.py
+ | | |-model_config.json
+ | | |-common_utils.py
+ | | |-requirements.txt
+ | | |-config.py
+
+
+```
 
 # 참고: 논문 관련
 - Paper Original Code: Neural Collaborative Filtering
