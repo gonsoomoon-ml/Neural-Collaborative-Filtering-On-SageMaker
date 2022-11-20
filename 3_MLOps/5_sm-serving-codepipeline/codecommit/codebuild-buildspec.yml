@@ -13,6 +13,6 @@ phases:
       - |
         run-pipeline --module-name pipelines.ncf.pipeline \
           --role-arn $SAGEMAKER_PIPELINE_ROLE_ARN \
-          --kwargs "{\"region\":\"${AWS_REGION}\",\"role\":\"${SAGEMAKER_PIPELINE_ROLE_ARN}\",\"default_bucket\":\"${TEMPLATE_BUCKET}\",\"pipeline_name\":\"${SAGEMAKER_PIPELINE_NAME}\",\"model_package_group_name\":\"${model_package_group_name}\",\"s3_input_data_uri\":\"${s3_input_data_uri}\",\"project_prefix\":\"${project_prefix}\",\"endpoint_name\":\"${endpoint_name}\",\"base_job_prefix\":\"${SAGEMAKER_PIPELINE_NAME}\"}"
+          --kwargs "{\"region\":\"${AWS_REGION}\",\"role\":\"${SAGEMAKER_PIPELINE_ROLE_ARN}\",\"default_bucket\":\"${TEMPLATE_BUCKET}\",\"pipeline_name\":\"${SAGEMAKER_PIPELINE_NAME}\",\"model_package_group_name\":\"${model_package_group_name}\",\"project_prefix\":\"${project_prefix}\",\"endpoint_name\":\"${endpoint_name}\"}"
       - echo "Create/Update of the SageMaker Pipeline and execution completed."
 

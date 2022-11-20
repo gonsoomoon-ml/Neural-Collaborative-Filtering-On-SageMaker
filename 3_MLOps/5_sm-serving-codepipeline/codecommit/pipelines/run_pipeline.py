@@ -77,37 +77,67 @@ def main():  # pragma: no cover
     # tags = convert_struct(args.tags)
 
     try:
+        
+        ##################################
+        # pipeline 오브젝트 얻기
+        ##################################        
+        import json
+        
         pipeline = get_pipeline_driver(args.module_name, args.kwargs)
         print("###### Creating/updating a SageMaker Pipeline with the following definition:")
         parsed = json.loads(pipeline.definition())
         print(json.dumps(parsed, indent=2, sort_keys=True))
 
-        # all_tags = get_pipeline_custom_tags(args.module_name, args.kwargs, tags)
-
-        # upsert_response = pipeline.upsert(
-        #     role_arn=args.role_arn, description=args.description, tags=all_tags
-        # )
         upsert_response = pipeline.upsert(
             role_arn=args.role_arn, description=args.description)
 
         
         print("\n###### Created/Updated SageMaker Pipeline: Response received:")
         print(upsert_response)
+        
+        
+        ##################################
+        # 설정 파일에서 변수 값을 가져온다.
+        ##################################        
+        
+        print("\n ###### Loading config variables for running a  parametized pipeline:")
+        
+        sm_pipeline_serving_config_json_path = 'pipelines/ncf/src/sm_pipeline_serving_config.json'
 
-        execution = pipeline.start()
+        from pipelines.ncf.src.common_utils import load_json
+        
+        sm_pipeline_serving_dict = load_json(sm_pipeline_serving_config_json_path)
+
+
+        print("SageMaker Pipeline Series Params: ")
+        print (json.dumps(sm_pipeline_serving_dict, indent=2))
+
+        endpoint_instance_type = sm_pipeline_serving_dict["endpoint_instance_type"]
+        ModelApprovalStatus = sm_pipeline_serving_dict["ModelApprovalStatus"] 
+    
+        print(f"endpoint_instance_type: {endpoint_instance_type}")
+        print(f"ModelApprovalStatus: {ModelApprovalStatus}")
+
+        ##################################
+        # 파라미터를 가지고 파이프라인 실행
+        ##################################        
+        
+        execution = pipeline.start(
+            parameters=dict(
+                ModelApprovalStatus = ModelApprovalStatus,             
+                endpoint_instance_type = endpoint_instance_type
+            )
+        )
+        
         print(f"\n###### Execution started with PipelineExecutionArn: {execution.arn}")
 
         print("Waiting for the execution to finish...")
 
-        # Setting the attempts and delay (in seconds) will modify the overall time the pipeline waits. 
-        # If the execution is taking a longer time, update these parameters to a larger value.
-        # Eg: The total wait time is calculated as 60 * 120 = 7200 seconds (2 hours)
         execution.wait(max_attempts=120, delay=60)
         
         print("\n#####Execution completed. Execution step details:")
-
         print(execution.list_steps())
-        # Todo print the status?
+        
     except Exception as e:  # pylint: disable=W0703
         print(f"Exception: {e}")
         traceback.print_exc()

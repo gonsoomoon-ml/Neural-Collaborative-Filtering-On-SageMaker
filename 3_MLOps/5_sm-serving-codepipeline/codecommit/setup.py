@@ -39,6 +39,7 @@ setuptools.setup(
     license=about["__license__"],
     packages=setuptools.find_packages(),
     include_package_data=True,
+    package_data={"pipelines.ncf.src": ["*.py", "*.json","*.txt"]},        
     python_requires=">=3.6",
     install_requires=required_packages,
     extras_require=extras,

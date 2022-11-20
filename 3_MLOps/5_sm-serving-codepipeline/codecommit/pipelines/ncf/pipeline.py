@@ -121,7 +121,7 @@ def print_files_in_dir(root_dir, prefix):
 
             
 def get_pipeline(
-    s3_input_data_uri,    
+#    s3_input_data_uri,    
     project_prefix,
     region,
     endpoint_name = None, # Sagemaker Endpoint Name
@@ -129,9 +129,6 @@ def get_pipeline(
     default_bucket=None,
     model_package_group_name= None,
     pipeline_name= None,
-    base_job_prefix= None,
-    # processing_instance_type= None,
-    training_instance_type="ml.p3.2xlarge",
 ):
     """Gets a SageMaker ML Pipeline instance working with on abalone data.
 
@@ -148,7 +145,7 @@ def get_pipeline(
     ##################################        
     print("######### get_pipeline() input parameter ###############")
     print(f"### BASE_DIR: {BASE_DIR}")    
-    print(f"s3_input_data_uri: {s3_input_data_uri}")        
+#    print(f"s3_input_data_uri: {s3_input_data_uri}")        
     print(f"project_prefix: {project_prefix}")            
     # print(f"sagemaker_project_arn: {sagemaker_project_arn}")            
     print(f"role: {role}")            
@@ -156,9 +153,6 @@ def get_pipeline(
     print(f"model_package_group_name: {model_package_group_name}")            
     print(f"endpoint_name: {endpoint_name}")                
     print(f"pipeline_name: {pipeline_name}")            
-    print(f"base_job_prefix: {base_job_prefix}")                
-    # print(f"processing_instance_type: {processing_instance_type}")                
-    print(f"training_instance_type: {training_instance_type}")                    
     ##################################
     ## 현재 폴더 기준으로 하위 폴더 및 파일 보기
     ##################################        
@@ -186,6 +180,12 @@ def get_pipeline(
     model_approval_status = ParameterString(
         name="ModelApprovalStatus", default_value="Approved"
     )
+    
+    endpoint_instance_type = ParameterString(
+        name="endpoint_instance_type", default_value="ml.g4dn.xlarge"
+    )
+    
+    
     
 
     ##################################
@@ -253,11 +253,11 @@ def get_pipeline(
         sagemaker_session=pipeline_session,
     )
     
-    instance_type = 'ml.g4dn.xlarge' # $ 0.906 per Hour
+#    instance_type = 'ml.g4dn.xlarge' # $ 0.906 per Hour
 
     step_model_create = ModelStep(
        name="MyModelCreationStep",
-       step_args=model.create(instance_type = instance_type)
+       step_args=model.create(instance_type = endpoint_instance_type)
     )    
     
     ##################################
@@ -300,7 +300,7 @@ def get_pipeline(
             "model_name": step_model_create.properties.ModelName,
             "endpoint_config_name": endpoint_config_name,
             "endpoint_name": endpoint_name,
-            "instance_type": instance_type,        
+            "instance_type": endpoint_instance_type,        
         },
         outputs=[output_param_1, output_param_2, output_param_3],
     )
@@ -314,9 +314,10 @@ def get_pipeline(
         name=pipeline_name,
         parameters=[
             model_approval_status,
+            endpoint_instance_type
         ],
         steps=[step_approve_lambda, step_model_create, step_deploy_lambda],    
-        sagemaker_session=pipeline_session,
+        sagemaker_session=pipeline_session
     )
     
     return pipeline
