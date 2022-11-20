@@ -124,7 +124,7 @@ def get_pipeline(
     s3_input_data_uri,    
     project_prefix,
     region,
-    inference_image_uri = None,
+    endpoint_name = None, # Sagemaker Endpoint Name
     role=None, # SAGEMAKER_PIPELINE_ROLE_ARN 이 넘어옴.
     default_bucket=None,
     model_package_group_name= None,
@@ -154,6 +154,7 @@ def get_pipeline(
     print(f"role: {role}")            
     print(f"default_bucket: {default_bucket}")            
     print(f"model_package_group_name: {model_package_group_name}")            
+    print(f"endpoint_name: {endpoint_name}")                
     print(f"pipeline_name: {pipeline_name}")            
     print(f"base_job_prefix: {base_job_prefix}")                
     # print(f"processing_instance_type: {processing_instance_type}")                
@@ -236,15 +237,19 @@ def get_pipeline(
     from sagemaker.workflow.model_step import ModelStep
     from sagemaker.model import Model
     import time    
+    
+    import time 
 
-    endpoint_name = "sm-ncf-{}".format(int(time.time()))
+    current_time = time.strftime("%m-%d-%H-%M-%S", time.localtime())
+    model_name = f'{endpoint_name}-{current_time}'    
+    print("model_name: \n", model_name)    
+
 
     model = Model(
-        # image_uri= step_approve_lambda.properties.Outputs["statusCode"],
-        # model_data = step_approve_lambda.properties.Outputs["statusCode"],
         image_uri= step_approve_lambda.properties.Outputs["image_uri_approved"],
         model_data = step_approve_lambda.properties.Outputs["ModelDataUrl_approved"],    
         role=role,
+        name = model_name, # SageMaker Model Name
         sagemaker_session=pipeline_session,
     )
     
@@ -259,20 +264,16 @@ def get_pipeline(
     ## 모델 앤드 포인트 배포를 위한 람다 스텝 생성
     ##################################    
 
-    import time 
 
-    current_time = time.strftime("%m-%d-%H-%M-%S", time.localtime())
 
-    # model_name = project_prefix + "-lambda-model" + current_time
-    endpoint_config_name = "lambda-deploy-endpoint-config-" + current_time
-    endpoint_name = "lambda-deploy-endpoint-" + current_time
+    endpoint_config_name = f'{endpoint_name}-{current_time}'
+    # endpoint_name = "lambda-deploy-endpoint-" + current_time
 
     # function_name = "sagemaker-lambda-step-endpoint-deploy-" + current_time
     function_name = "sagemaker-lambda-step-endpoint-deployment"
 
-    # print("model_name: \n", model_name)
+
     print("endpoint_config_name: \n", endpoint_config_name)
-    print("endpoint_config_name: \n", len(endpoint_config_name))
     print("endpoint_name: \n", endpoint_name)
     print("function_name: \n", function_name)
 

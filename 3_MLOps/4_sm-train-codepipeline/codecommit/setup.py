@@ -12,7 +12,8 @@ with open("README.md", "r") as f:
     readme = f.read()
 
 
-required_packages = ["sagemaker==2.93.0"]
+# required_packages = ["sagemaker==2.93.0"]
+required_packages = ["sagemaker==2.117.0"]
 extras = {
     "test": [
         "black",
@@ -38,6 +39,7 @@ setuptools.setup(
     license=about["__license__"],
     packages=setuptools.find_packages(),
     include_package_data=True,
+    package_data={"pipelines.ncf.src": ["*.py", "*.py","*.txt"]},    
     python_requires=">=3.6",
     install_requires=required_packages,
     extras_require=extras,

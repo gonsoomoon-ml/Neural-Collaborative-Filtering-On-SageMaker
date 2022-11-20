@@ -74,19 +74,21 @@ def main():  # pragma: no cover
     if args.module_name is None or args.role_arn is None:
         parser.print_help()
         sys.exit(2)
-    # tags = convert_struct(args.tags)
+
 
     try:
+        
+        ##################################
+        # pipeline 오브젝트 얻기
+        ##################################        
+        
+        import json
+        
         pipeline = get_pipeline_driver(args.module_name, args.kwargs)
         print("###### Creating/updating a SageMaker Pipeline with the following definition:")
         parsed = json.loads(pipeline.definition())
         print(json.dumps(parsed, indent=2, sort_keys=True))
 
-        # all_tags = get_pipeline_custom_tags(args.module_name, args.kwargs, tags)
-
-        # upsert_response = pipeline.upsert(
-        #     role_arn=args.role_arn, description=args.description, tags=all_tags
-        # )
         upsert_response = pipeline.upsert(
             role_arn=args.role_arn, description=args.description)
 
@@ -94,7 +96,51 @@ def main():  # pragma: no cover
         print("\n###### Created/Updated SageMaker Pipeline: Response received:")
         print(upsert_response)
 
-        execution = pipeline.start()
+        
+        ##################################
+        # 설정 파일에서 변수 값을 가져온다.
+        ##################################        
+        
+        print("\n ###### Loading config variables for running a  parametized pipeline:")
+        
+        sm_pipeline_train_config_json_path = 'pipelines/ncf/src/sm_pipeline_train_config.json'
+
+        from pipelines.ncf.src.common_utils import load_json
+        
+        sm_pipeline_train_dict = load_json(sm_pipeline_train_config_json_path)
+
+        import json
+        print("SageMaker Pipeline Series Params: ")
+        print (json.dumps(sm_pipeline_train_dict, indent=2))
+
+
+        s3_input_data_uri = sm_pipeline_train_dict["s3_input_data_uri"]
+        training_instance_type = sm_pipeline_train_dict["training_instance_type"]
+        training_instance_count = sm_pipeline_train_dict["training_instance_count"]
+        ModelApprovalStatus = sm_pipeline_train_dict["ModelApprovalStatus"] 
+        inference_image_uri = sm_pipeline_train_dict["inference_image_uri"]
+    
+        print(f"s3_input_data_uri: {s3_input_data_uri}")            
+        print(f"training_instance_type: {training_instance_type}")
+        print(f"training_instance_count: {training_instance_count}")
+        print(f"ModelApprovalStatus: {ModelApprovalStatus}")
+        print(f"inference_image_uri: {inference_image_uri}")        
+    
+        ##################################
+        # 파라미터를 가지고 파이프라인 실행
+        ##################################        
+    
+    
+        execution = pipeline.start(
+            parameters=dict(
+                InputData= s3_input_data_uri,
+                training_instance_type = training_instance_type,
+                training_instance_count = training_instance_count,
+                ModelApprovalStatus = ModelApprovalStatus,            
+                inference_image_uri = inference_image_uri,     
+            )
+        )        
+
         print(f"\n###### Execution started with PipelineExecutionArn: {execution.arn}")
 
         print("Waiting for the execution to finish...")

@@ -1,13 +1,3 @@
-"""Example workflow pipeline script for abalone pipeline.
-
-                                               . -ModelStep
-                                              .
-    Process-> Train -> Evaluate -> Condition .
-                                              .
-                                               . -(stop)
-
-Implements a get_pipeline(**kwargs) method.
-"""
 import os
 
 import boto3
@@ -108,17 +98,6 @@ def get_pipeline_session(region, default_bucket):
         default_bucket=default_bucket,
     )
 
-# def get_pipeline_custom_tags(new_tags, region, sagemaker_project_arn=None):
-#     try:
-#         sm_client = get_sagemaker_client(region)
-#         response = sm_client.list_tags(
-#             ResourceArn=sagemaker_project_arn)
-#         project_tags = response["Tags"]
-#         for project_tag in project_tags:
-#             new_tags.append(project_tag)
-#     except Exception as e:
-#         print(f"Error getting project tags: {e}")
-#     return new_tags
 
 import os
 
@@ -132,17 +111,12 @@ def print_files_in_dir(root_dir, prefix):
 
             
 def get_pipeline(
-    s3_input_data_uri,    
     project_prefix,
     region,
-    inference_image_uri = None,
     role=None, # SAGEMAKER_PIPELINE_ROLE_ARN 이 넘어옴.
     default_bucket=None,
     model_package_group_name= None,
-    pipeline_name= None,
-    base_job_prefix= None,
-    # processing_instance_type= None,
-    training_instance_type="ml.p3.2xlarge",
+    pipeline_name= None
 ):
     """Gets a SageMaker ML Pipeline instance working with on abalone data.
 
@@ -150,6 +124,7 @@ def get_pipeline(
         region: AWS region to create and run the pipeline.
         role: IAM role to create and run steps and pipeline.
         default_bucket: the bucket to use for storing the artifacts
+        model_package_group_name: 모델을 등록할 모델 레지스트리 이름
 
     Returns:
         an instance of a pipeline
@@ -159,16 +134,13 @@ def get_pipeline(
     ##################################        
     print("######### get_pipeline() input parameter ###############")
     print(f"### BASE_DIR: {BASE_DIR}")    
-    print(f"s3_input_data_uri: {s3_input_data_uri}")        
     print(f"project_prefix: {project_prefix}")            
-    # print(f"sagemaker_project_arn: {sagemaker_project_arn}")            
+    print(f"region: {region}")                
     print(f"role: {role}")            
     print(f"default_bucket: {default_bucket}")            
     print(f"model_package_group_name: {model_package_group_name}")            
     print(f"pipeline_name: {pipeline_name}")            
-    print(f"base_job_prefix: {base_job_prefix}")                
-    # print(f"processing_instance_type: {processing_instance_type}")                
-    print(f"training_instance_type: {training_instance_type}")                    
+     
     ##################################
     ## 현재 폴더 기준으로 하위 폴더 및 파일 보기
     ##################################        
@@ -178,8 +150,7 @@ def get_pipeline(
     ##################################
     ## 환경 초기화
     ##################################        
-    
-    
+        
     sagemaker_session = get_session(region, default_bucket)
     if role is None:
         role = sagemaker.session.get_execution_role(sagemaker_session)
@@ -192,37 +163,55 @@ def get_pipeline(
     ## 소스 코드 다운로드
     ##################################        
 
-
     # 데이타의 위치를 code_location.json" 에서 가져온다.
     import json
-    json_file_name = "code_location.json"    
+#    json_file_name = f"{BASE_DIR}/code_location.json"    
+    json_file_name = f"code_location.json"        
+    print("code_location path: \n" , json_file_name)
     # Opening JSON file
     with open(json_file_name, 'r') as openfile:
-
         # Reading from json file
         json_object = json.load(openfile)
 
     print("##### S3 Code Location #########")
     print("s3_code_uri: " , json_object["s3_code_uri"])
     print("################################")    
-
     
     s3_code_uri = json_object["s3_code_uri"]
-    
-    
+        
     ##################################
     ## 파이프라인 파라미터 정의
     ##################################        
     
     s3_data_loc = ParameterString(
         name="InputData",
-        default_value=s3_input_data_uri,
+        default_value=None,
     )
 
+    training_instance_type = ParameterString(
+        name="training_instance_type", default_value="ml.g4dn.xlarge"
+    )
+    
+    training_instance_count = ParameterInteger(
+        name="training_instance_count", default_value=1
+    )
+
+    # project_prefix 와 같이 문자열이 다른 변수와 결합해서 쓸 경우에 , 파라미터 변수로 적합하지 않음.
+    # # project_prefix = ParameterString(
+    # #     name="project_prefix", default_value="project_prefix"
+    # # )
+    
+    inference_image_uri = ParameterString(
+        name="inference_image_uri", default_value=None
+    )
+    # model_package_group_name: 런타임 전에 스크립트 파싱 과정에서 Variable Validation 에러 발생 하여 파라미터 변수로 적합하지 않음.
+    # model_package_group_name = ParameterString(
+    #     name="model_package_group_name", default_value=None
+    # )
     model_approval_status = ParameterString(
         name="ModelApprovalStatus", default_value="PendingManualApproval"
     )
-    
+        
     ##################################
     ## 모델 훈련 스텝
     ##################################    
@@ -251,22 +240,21 @@ def get_pipeline(
     estimator_output_path = f's3://{default_bucket}/{project_prefix}/training_jobs'
     print("estimator_output_path: \n", estimator_output_path)
 
-
-    instance_type = 'ml.p3.2xlarge'
-    instance_count = 1
         
     # source_dir = s3_code_uri 는 S3 의 경로를 입력한다.
+    src_folder = f'pipelines/ncf/src'
     
     host_estimator = PyTorch(
         entry_point="train.py",           
-        source_dir = s3_code_uri,        
+        # source_dir = s3_code_uri,        
+        source_dir = src_folder,                
         role=role,
         output_path = estimator_output_path,    
         framework_version='1.8.1',
         py_version='py3',
         disable_profiler = True,
-        instance_count=instance_count,
-        instance_type=instance_type,
+        instance_count=training_instance_count,
+        instance_type=training_instance_type,
         session = pipeline_session, # 세이지 메이커 세션
         hyperparameters=host_hyperparameters,
         metric_definitions = metric_definitions
@@ -324,8 +312,7 @@ def get_pipeline(
     currentTime = currentDateAndTime.strftime("%Y-%m-%d-%H-%M-%S")
     bucket_prefix = f'{project_prefix}/{currentTime}'
     print("bucket prefix: \n", bucket_prefix)
-    
-    
+        
     step_repackage_lambda = LambdaStep(
         name="LambdaRepackageStep",
         lambda_func=func_repackage_model,
@@ -369,9 +356,6 @@ def get_pipeline(
     from sagemaker.workflow.model_step import ModelStep
     from sagemaker.model import Model
 
-    # inference docker image
-#    inference_image_uri = '763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.8.1-gpu-py3'    
-
     model = Model(
         image_uri=inference_image_uri,
         model_data = step_repackage_lambda.properties.Outputs["S3_Model_URI"],
@@ -385,22 +369,27 @@ def get_pipeline(
         inference_instances=["ml.g4dn.xlarge", "ml.p2.xlarge"],
         transform_instances=["ml.g4dn.xlarge"],
         model_package_group_name=model_package_group_name,
-        approval_status=model_approval_status,
+        # approval_status=model_approval_status.to_string,
+        approval_status=model_approval_status,        
     )
-
+    
     step_model_registration = ModelStep(
        name="RegisterModel",
        step_args=register_model_step_args,
-    )
+    )    
     
     ##################################
     # pipeline creation
     ##################################    
+    
     pipeline = Pipeline(
         name=pipeline_name,
         parameters=[
             s3_data_loc,
-            model_approval_status,
+            training_instance_type,    
+            training_instance_count,
+            inference_image_uri, 
+            model_approval_status,            
         ],
         steps=[step_train,  step_repackage_lambda, step_model_registration],
         sagemaker_session=pipeline_session,
