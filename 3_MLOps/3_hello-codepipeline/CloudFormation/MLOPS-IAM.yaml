@@ -11,6 +11,7 @@ Resources:
         - "arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess"
         - "arn:aws:iam::aws:policy/AWSCodeCommitFullAccess"
         - "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
+        - "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
         - "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
@@ -32,6 +33,7 @@ Resources:
         - "arn:aws:iam::aws:policy/AWSCodeCommitFullAccess"
         - "arn:aws:iam::aws:policy/CloudWatchFullAccess"
         - "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+        - "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -40,6 +42,7 @@ Resources:
             Service:
             - codebuild.amazonaws.com
             - sagemaker.amazonaws.com
+            - lambda.amazonaws.com
           Action:
             - sts:AssumeRole
 
