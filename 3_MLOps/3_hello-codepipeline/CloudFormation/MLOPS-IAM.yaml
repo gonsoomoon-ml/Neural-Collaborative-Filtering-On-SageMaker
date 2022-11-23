@@ -65,5 +65,6 @@ Resources:
             Service:
             - codebuild.amazonaws.com
             - codepipeline.amazonaws.com
+            - lambda.amazonaws.com
           Action:
             - sts:AssumeRole
