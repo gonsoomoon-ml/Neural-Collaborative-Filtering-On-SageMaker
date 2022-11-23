@@ -15,3 +15,7 @@
     - 클린업 
 
 
+# 2. 업무 적용시 작업 순서
+- 이 모듈의 전체적인 생성 가이드 입니다.
+    - [SageMaker 훈련 파이프라인 생성 가이드](0.0.create-pipeline.py-buildspec.yml.ipynb)
+    - ![sm_pipeline_execution_flow.png](img/sm_pipeline_execution_flow.png)
