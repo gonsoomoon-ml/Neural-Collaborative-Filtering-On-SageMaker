@@ -57,6 +57,7 @@ Resources:
         - "arn:aws:iam::aws:policy/AWSCodeCommitFullAccess"
         - "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
         - "arn:aws:iam::aws:policy/AWSCodeDeployFullAccess"
+        - "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
