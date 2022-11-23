@@ -20,6 +20,7 @@ Resources:
           Principal:
             Service:
             - sagemaker.amazonaws.com
+            - lambda.amazonaws.com
           Action:
             - sts:AssumeRole
   
