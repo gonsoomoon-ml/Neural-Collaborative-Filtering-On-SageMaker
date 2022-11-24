@@ -5,7 +5,7 @@
 
 
 - 0_Setup_Environment
-    - # 이미 실행하셨다면 이 과정은 스킵하세요.
+    - [알림] 이미 실행하셨다면 이 과정은 스킵하세요.
     - 0.0.Setup-Environment.ipynb
         - 필요 패키지 설치 및 로컬 모드 세팅
 
