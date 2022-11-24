@@ -5,6 +5,7 @@ ML Ops 는 크게 5개의 모듈로 되어 있습니다.크게 아래 3개의 �
 - 전 단계의 1_Train, 2_Inference 의 진행 없이 실습이 가능합니다.
 
 # 0. 사전 작업
+## 아래 작업을 이미 하셨다면 스킵 하세요.
 - [0_Setup_Environment](../0_Setup_Environment/README.md)
     - 전체 노트북의 시작이며, 필요한 패키지 및 환경 설정을 합니다.
         - 0.0.Setup-Environment.ipynb
@@ -38,6 +39,7 @@ ML Ops 는 크게 5개의 모듈로 되어 있습니다.크게 아래 3개의 �
         - 2.1.build_project.ipynb
         - 3.1.pipeline_project.ipynb
         - 4.1.Cleanup.ipynb
+        - (옵션) codecommit/sagemaker-pipelines-project.ipynb
 
 # 5. 모델 서빙을 위한 Code Pipeline 을 SageMaker Pipeline 으로 연결
 - [5_sm-serving-codepipeline](5_sm-serving-codepipeline/README.md)
@@ -47,4 +49,5 @@ ML Ops 는 크게 5개의 모듈로 되어 있습니다.크게 아래 3개의 �
         - 2.1.build_project.ipynb
         - 3.1.pipeline_project.ipynb
         - 4.1.Cleanup.ipynb
+        - (옵션) sagemaker-pipelines-project.ipynb
 

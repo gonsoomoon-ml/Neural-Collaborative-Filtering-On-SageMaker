@@ -13,5 +13,8 @@
     - 코드 파이프라인 생성
 - 4.1.Cleanup.ipynb
     - 클린업 
+- (옵션) codecommit/sagemaker-pipelines-project.ipynb
+    - code pipeline 없이 codecommit/pipelines/ncf/pipeline.py 를 테스트하기 위한 노트북 입니다.
+    
 
 
