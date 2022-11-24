@@ -1,10 +1,11 @@
 # 1. 세이지메이커로 NCF 모델 훈련 하기
 
 # 2. 실행 주요 파일 
-- #### [중요] 이 워크샵은 ml.p3.2xlarge, ml.p3.8xlarge, ml.p3.16xlarge 세이지 메이커 노트북 인스턴스의 `conda_python3`에서 테스트 되었습니다.
+- #### [중요] 이 워크샵은 ml.g4dn.xlarge, ml.p3.2xlarge, ml.p3.8xlarge, ml.p3.16xlarge 세이지 메이커 노트북 인스턴스의 `conda_python3`에서 테스트 되었습니다.
 
 
 - 0_Setup_Environment
+    - # 이미 실행하셨다면 이 과정은 스킵하세요.
     - 0.0.Setup-Environment.ipynb
         - 필요 패키지 설치 및 로컬 모드 세팅
 
