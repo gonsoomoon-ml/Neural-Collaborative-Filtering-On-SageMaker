@@ -29,7 +29,8 @@ NeuMF (with pre-training)	 | 0.720 | 0.439 | 0.879 | 0.555
 ## 2.2. SageMaker Notebook 생성 
 ### [중요 사항] 
 - 이 워크샵은 ml.g4dn.xlarge, ml.p3.2xlarge, ml.p3.8xlarge, ml.p3.16xlarge "세이지 메이커 노트북 인스턴스"의 `conda_python3`에서 테스트 되었습니다.
-- SageMaker Notebook 생성시에 Role 선택시에 "<(stack Name)-SageMakerRole" 을 꼭 선택해주세요.
+- SageMaker Notebook 생성시에 Role 선택시에 <font color="red">(stack Name)-SageMakerRole</font> 을 꼭 선택해주세요.
+    - "(stack Name)-SageMakerRole" 은 위의 2.1 을 실행하면 생성 됩니다.
 
 ## 2.3. 환경 셋업 노트북 실행
 - 0_Setup_Environment/0.0.Setup-Environment.ipynb
