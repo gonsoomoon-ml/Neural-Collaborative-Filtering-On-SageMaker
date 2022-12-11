@@ -38,23 +38,29 @@ NeuMF (with pre-training)	 | 0.720 | 0.439 | 0.879 | 0.555
 
 # 3. 주요 실습 모듈
 ## 3.0. [알림] 실습 방법 아래의 3가지 임.
-- 3.1.모델 훈련 
+- 아래 3.1.모델 훈련 
     - 소요시간 약 1시간
-- 3.1.모델 훈련 과 3.2.모델 서빙 
+- 아래 3.1.모델 훈련 과 3.2.모델 서빙 
     - 소요시간 약 1시간 30분
-- 3.3. MLOps
+- 아래 3.3.Triton Inference Server 를 SageMaker Endpoint 에서 서빙
+    - 소요시간 약 2시간    
+- 아래 3.3. MLOps
     - 소요시간 약 2시간 30분
-- 3개의 모듈을 모두할 경우에는 약 4시간이 소요 됨.
+- 3개의 모듈을 모두할 경우에는 약 6시간이 소요 됨.
     
-## 3.1.모델 훈련
+## 3.1. 모델 훈련
 - 오픈 소스로 구현된 NCF 알고리즘을 SageMaker 에서 모델 훈련, 호로보드 및 SageMaker DDP (Distributed Data Parallel) 분산 훈련을 함.
     - [모델 훈련: 1_Train](1_Train/README.md)
 
-## 3.2.모델 서빙
+## 3.2. 모델 서빙
 - 위에서 모델 훈련된 모델 아티펙트를 모델 서빙을 함. 
     - [모델 서빙: 1_Inference](2_Inference/README.md)
+    
+## 3.3. Triton Inference Server 를 SageMaker Endpoint 에서 서빙
+- 독립적인 모듈로 아래 링크 클릭 후에 가이드를 따라 가세요.
+    - [Triton 서빙: 2_Triton_Inference](2_Triton_Inference/README.md)
 
-## 3.3. MLOps
+## 3.4. MLOps
 - Code Pipeline 읠 쉽게 Jupyter Notebook 에서 실행하면서 배우기
     - [MLOps: 3_MLOps](3_MLOps/README.md)
 
