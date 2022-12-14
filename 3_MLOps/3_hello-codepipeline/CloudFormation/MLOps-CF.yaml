@@ -22,6 +22,7 @@ Resources:
         - "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
         - "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
         - "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+        - "arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
