@@ -1,25 +1,19 @@
 # Neural Collaborative Filtering (NCF) On SageMaker
+
+# 0. NCF 알고리즘 개요
+[Neural Collaborative Filtering](https://arxiv.org/abs/1708.05031) 의 논문은 아래의 논문에 제시된 그림 처럼 Matrix Factorizaton (MF) 의 Linearity 와 Multi-Layer Perceptron(MLP) 의 Non-Linearity 를 앙상블하여 만든 알고리즘 입니다. 논문의 알고리즘 구현 
+[A pytorch GPU implementation of He et al. "Neural Collaborative Filtering" at WWW'17](https://github.com/guoyang9/NCF) 를 참조 하였습니다. 사용된 데이터는 MovieLens의 유저, 아이템의 1,000,209 interaction data, 3,706 item, 6,040 user 데이터 세트를 사용하였습니다.
+
+![neural_mf_model.png](img/neural_mf_model.png)
+
+# 1. 워크샵 개요 및 목표
+## 1.1 개요
+- NCF 알고리즘을 오픈 소스에 기반하여 SageMaker Training, Serving, 및 MLOps 를 구성을 하는 워크샵 입니다.
+- 이 워크샵은 위의 Pytorch 버전을 SageMaker 에서 훈련 및 서빙을 구현을 했고, SageMaker의 여러가지 장점을 사용하여, 대규모의 데이터 세트에서도 동작할 수 있게 만들었습니다.
+## 1.2 목표
 - 데이타 과학자가 `오픈 소스 코드를 SageMaker 위한 모델 빌딩, 모델 훈련, 모델 서빙` 을 합니다.
 - 또한 데이타 과학자에게 어려운 <font color="red">MLOps 를 Jupyter Notebook 에서 구성</font> 할 수 있는 실습을 제공 합니다.
 
-# 0. 배경
-NCF 알고리즘을 오픈 소스에 기반하여 SageMaker Training, Serving, 및 MLOps 를 구성을 하는 워크샵 입니다.
-
-# 1. NCF 개요
-[Neural Collaborative Filtering](https://arxiv.org/abs/1708.05031) 의 논문을
-[A pytorch GPU implementation of He et al. "Neural Collaborative Filtering" at WWW'17](https://github.com/guoyang9/NCF) Pytorch 구현 버전이 있습니다.
-
-이 버전은 아래와 같은 성능을 보이고 있으, 원본 논문의 성능과 거의 유사한 결과를 나타냅니다.
-
- 
-Models | MovieLens HR@10 | MovieLens NDCG@10 | Pinterest HR@10 | Pinterest NDCG@10
------- | --------------- | ----------------- | --------------- | -----------------
-MLP    | 0.691 | 0.416 | 0.866 | 0.537
-GMF    | 0.708 | 0.429 | 0.867 | 0.546
-NeuMF (without pre-training) | 0.701 | 0.424 | 0.867 | 0.544
-NeuMF (with pre-training)	 | 0.720 | 0.439 | 0.879 | 0.555
-
-이 워크샵은 위의 Pytorch 버전을 SageMaker 에서 훈련 및 서빙을 구현을 했고, SageMaker의 여러가지 장점을 사용하여, 대규모의 데이터 세트에서도 동작할 수 있게 만들었습니다.
 
 # 2. 선행 조건
 ## 2.1. 이 워크샵을 위한 역할, 권한 설정.
