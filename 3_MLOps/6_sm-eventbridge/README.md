@@ -5,7 +5,7 @@
 # 1. 실습 파일 
 
 - 1.0.Prepare-Dataset.ipynb
-    - SageMaker 훈련 Pipeline 실행을 위한 훈련 데이터를 준비 합니다.
+    - SageMaker 훈련 Pipeline 실행을 위한 훈련 데이터 준비
 - 1.1.Create_eventbridge_for_codepipeline.ipynb
     - EventBridge Rule 및 Target 생성 (+ CodePipeline 실행을 위한 IAM role 및 policy 생성)
 - 2.1.create_eventbridge_for_model_approval.ipynb
