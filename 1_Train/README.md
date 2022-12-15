@@ -18,3 +18,5 @@
         - 세이지 메이커 Data Parallel Training (DDP) 로 로컬 모드, 호스트 모드로 훈련 
         - [중요] ml.p3.16xlarge 이상의 노트북 인스턴스에서 실행이 가능합니다.
 
+# 참고
+- 1.3, 1.4 노트북은 옵션이지만, 분산 훈련을 위한 호로보드 및 SageMaker Distributed Data Parallel 를 사용한 분산 훈련을 합니다. 추후에 실행을 권장 드립니다.
