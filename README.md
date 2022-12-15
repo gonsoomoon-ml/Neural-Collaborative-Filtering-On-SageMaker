@@ -17,19 +17,10 @@
 
 
 # 2. 선행 조건
-## 2.1. 이 워크샵을 위한 역할, 권한 설정.
-- 아래 경로의 MLOPS-IAM.yaml 파일을 Cloud Formation 에 업로드하여 실행 합니다.
-    - [역할 및 권한 설치 YAML 파일](3_MLOps/3_hello-codepipeline/CloudFormation/MLOPS-IAM.yaml)
-    
-## 2.2. SageMaker Notebook 생성 
-### [중요 사항] 
-- 이 워크샵은 ml.g4dn.xlarge, ml.p3.2xlarge, ml.p3.8xlarge, ml.p3.16xlarge "세이지 메이커 노트북 인스턴스"의 `conda_python3`에서 테스트 되었습니다.
-- SageMaker Notebook 생성시에 Role 선택시에 <font color="red">(stack Name)-SageMakerRole</font> 을 꼭 선택해주세요.
-    - "(stack Name)-SageMakerRole" 은 위의 2.1 을 실행하면 생성 됩니다.
+## 2.1. 이 워크샵을 위한 SageMaker Notebook 생성 및 역할, 권한 설정.
+- 아래 링크를 클릭하셔서 진행 해주세요.
+- [Setup_Environment](Setup_Environment/README.md)
 
-## 2.3. 환경 셋업 노트북 실행
-- 0_Setup_Environment/0.0.Setup-Environment.ipynb
-    - [0_Setup_Environment](0_Setup_Environment/README.md)
 
 # 3. 주요 실습 모듈
 ## 3.0. [알림] 실습 방법 아래의 3가지 임.
