@@ -1,4 +1,5 @@
 # Neural Collaborative Filtering (NCF) On SageMaker
+### -  데이터 과학자가 직접 만들고 실행하는 MLOPs
 
 # 0. NCF 알고리즘 개요
 [Neural Collaborative Filtering](https://arxiv.org/abs/1708.05031) 의 논문은 아래의 논문에 제시된 그림 처럼 Matrix Factorizaton (MF) 의 Linearity 와 Multi-Layer Perceptron(MLP) 의 Non-Linearity 를 앙상블하여 만든 알고리즘 입니다. 논문의 알고리즘 구현 
