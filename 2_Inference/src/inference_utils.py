@@ -16,16 +16,22 @@ def invoke_endpoint(runtime_client, endpoint_name, payload, content_type):
     return result
 
 def delete_endpoint(client, endpoint_name):
-    response = client.describe_endpoint_config(EndpointConfigName=endpoint_name)
+    print("#### Start")
+    response = client.describe_endpoint(EndpointName=endpoint_name)
+    EndpointConfigName = response['EndpointConfigName']    
+    
+    response = client.describe_endpoint_config(EndpointConfigName=EndpointConfigName)
+    
     model_name = response['ProductionVariants'][0]['ModelName']
 
-    client.delete_model(ModelName=model_name)    
-    client.delete_endpoint(EndpointName=endpoint_name)
-    client.delete_endpoint_config(EndpointConfigName=endpoint_name)    
-    
+
     print(f'--- Deleted model: {model_name}')
     print(f'--- Deleted endpoint: {endpoint_name}')
-    print(f'--- Deleted endpoint_config: {endpoint_name}')    
+    print(f'--- Deleted endpoint_config: {EndpointConfigName}')    
+    
+    client.delete_model(ModelName=model_name)    
+    client.delete_endpoint_config(EndpointConfigName=EndpointConfigName)        
+    client.delete_endpoint(EndpointName=endpoint_name)
 
 
 def delete_endpoint_detail(client, endpoint_name ,is_delete=False, is_del_model=True, is_del_endconfig=True,is_del_endpoint=True):
