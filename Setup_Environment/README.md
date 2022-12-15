@@ -57,8 +57,8 @@ AWS에 인프라 배포는 비용이 발생됩니다. AWS 이벤트에 참석하
     명령줄을 위한 터미널이 열리고 사용할 준비가 되었습니다. 터미널에서 다음 git 명령을 실행하여 이 워크샵을 완료하는데 필요한 코드를 복제합니다:
 
     ```
-    $ cd SageMaker
-    $ git clone https://github.com/gonsoomoon-ml/Neural-Collaborative-Filtering-On-SageMaker
+    cd SageMaker
+    git clone https://github.com/gonsoomoon-ml/Neural-Collaborative-Filtering-On-SageMaker
     ```
 
     저장소를 복제하면 좌측의 탐색기에 복제된 파일이 포함된 것을 볼 수 있습니다.
