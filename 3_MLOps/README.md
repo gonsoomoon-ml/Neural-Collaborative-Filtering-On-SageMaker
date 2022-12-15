@@ -5,7 +5,8 @@ ML Ops 는 크게 5개의 모듈로 되어 있습니다.크게 아래 3개의 �
 - 전 단계의 1_Train, 2_Inference 의 진행 없이 실습이 가능합니다.
 
 # 0. 사전 작업
-## 아래 작업을 이미 하셨다면 스킵 하세요.
+### [중요] 1_Train/0.0.Setup-Environment.ipynb 을 이미 하셨다면 스킵 하세요.
+- 중복으로 다시 한번 실행하셔도 문제는 없습니다.
 - [0_Setup_Environment](../0_Setup_Environment/README.md)
     - 전체 노트북의 시작이며, 필요한 패키지 및 환경 설정을 합니다.
         - 0.0.Setup-Environment.ipynb
@@ -51,3 +52,8 @@ ML Ops 는 크게 5개의 모듈로 되어 있습니다.크게 아래 3개의 �
         - 4.1.Cleanup.ipynb
         - (옵션) sagemaker-pipelines-project.ipynb
 
+# 6. 이벤트 (에: S3에 데이터 업로드) 발생하여 모델 훈련 및 추론 파이프라인 실행 하기
+위의 단계  4, 5 를 통하여 우리는 모델 훈련 및 서빙 아키텍처를 구현 하였습니다. 이제 매일 S3 에 훈련 데이터가 업로드가 된다고 가정을 하고, S3 에 훈련 데이터가 업로드시에 모델 훈련을 합니다. 또한 모델 레지스트리의 모델 상태를 변경하여 추론 파이프라인이 동작을 해보시죠.
+
+- [6_sm-eventbridge](6_sm-eventbridge/README.md)
+    - 1.1.create_eventbridge_of_codecommit.ipynb
