@@ -5,7 +5,7 @@
 
 아래의 그림은 (1) SageMaker Pipeline 노트북 (1_sm_training_pipeline/2.1.NCF-Training-Pipeline.ipynb) 과 (2) Code Pipeline 배운 내용 (3_hello-codepipeline) 을 바탕으로 Code Pipeline, SageMaker 모델 훈련 파이프라인을 생성하는 순서를 보여 주고 있습니다.
 
-![how-to-convert-codepipeline.png](img/how-to-convert-codepipeline.png)
+![how-to-convert-codepipeline.png](img/how-to-convert-sm-codepipeline.png)
 
 # 2. 실습 파일 
 
