@@ -1,7 +1,13 @@
 # Lab4: 4_sm-train-codepipeline
 - 모델 훈련을 위해서 code pipeline 을 SageMaker pipeline 과 연결.
 
-# 1. 실습 파일 
+# 1. Code Pipeline 및 SageMaker 모델 훈련 파이프라인 생성하기
+
+아래의 그림은 (1) SageMaker Pipeline 노트북 (1_sm_training_pipeline/2.1.NCF-Training-Pipeline.ipynb) 과 (2) Code Pipeline 배운 내용 (3_hello-codepipeline) 을 바탕으로 Code Pipeline, SageMaker 모델 훈련 파이프라인을 생성하는 순서를 보여 주고 있습니다.
+
+![how-to-convert-codepipeline.png](img/how-to-convert-codepipeline.png)
+
+# 2. 실습 파일 
 
 - 1.0.Create_Config.ipynb
     - Config.json 을 생성하는 노트북
@@ -18,7 +24,7 @@
     
 
 
-# 2. 업무 적용시 작업 순서
+# 3. 업무 적용시 작업 순서
 - 이 모듈의 전체적인 생성 가이드 입니다.
     - [SageMaker 훈련 파이프라인 생성 가이드](0.0.create-pipeline.py-buildspec.yml.ipynb)
     - ![sm_pipeline_execution_flow.png](img/sm_pipeline_execution_flow.png)
