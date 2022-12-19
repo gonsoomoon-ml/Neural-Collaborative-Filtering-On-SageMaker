@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'SageMaker MLOps HOL - IAM roles and SageMaker Notebook'
+Description: 'SageMaker MLOps HOL CloudFormation Template - IAM roles and SageMaker Notebook'
 Resources:
   NotebookInstance:
     Type: AWS::SageMaker::NotebookInstance
@@ -13,6 +13,7 @@ Resources:
   SageMakerRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: MLOps-SageMakerRole
       Path: "/"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
@@ -37,6 +38,7 @@ Resources:
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: MLOps-CodeBuildRole
       Path: "/"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
@@ -60,6 +62,7 @@ Resources:
   CodePipelineRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: MLOps-CodePipelineRole
       Path: "/"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
@@ -79,3 +82,31 @@ Resources:
             - lambda.amazonaws.com
           Action:
             - sts:AssumeRole
+
+  EventBridgeRole: 
+    Type: "AWS::IAM::Role"
+    Properties: 
+      RoleName: MLOps-EventBridgeRole
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "events.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/"
+  RolePolicies: 
+    Type: "AWS::IAM::Policy"
+    Properties: 
+      PolicyName: "EventBridgeExecPolicy"
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Action: "codepipeline:StartPipelineExecution"
+            Resource: "*"
+      Roles: 
+        - Ref: "EventBridgeRole"
