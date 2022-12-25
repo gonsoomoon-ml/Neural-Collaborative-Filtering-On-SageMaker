@@ -1,7 +1,13 @@
 # Lab5: 5_sm-serving-codepipeline
 - 모델 서빙을 위해서 code pipeline 을 SageMaker pipeline 과 연결.
 
-# 1. 실습 파일 
+
+# 1. Code Pipeline 및 SageMaker 모델 서빙 파이프라인 생성하기
+
+아래 그림은 "4_sm-train-codepipeline" 와 비슷하게 Code Pipeline, SageMaker 모델 서빙 파이프라인을 생성하는 순서를 보여 주고 있습니다.
+![how_to_serve_on_codepipeline.png](img/how_to_serve_on_codepipeline.png)
+
+# 2. 실습 파일 
 
 - 1.0.Create_Config.ipynb
     - Config.json 을 생성하는 노트북

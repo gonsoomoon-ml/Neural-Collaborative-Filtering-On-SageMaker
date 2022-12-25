@@ -29,7 +29,7 @@
 ## 0. 사전 작업
 ### [중요] 1_Train/0.0.Setup-Environment.ipynb 을 이미 하셨다면 스킵 하세요.
 - 중복으로 다시 한번 실행하셔도 문제는 없습니다.
-- [0_Setup_Environment](../0_Setup_Environment/README.md)
+- [0_Setup_Environment](0_setup_environment/0.0.Setup-Environment.ipynb)
     - 전체 노트북의 시작이며, 필요한 패키지 및 환경 설정을 합니다.
         - 0.0.Setup-Environment.ipynb
     
