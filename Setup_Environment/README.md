@@ -1,4 +1,4 @@
-Amazon SageMaker Notebook 생성 및 권한 설정
+Amazon SageMaker Notebook, 역할 생성 및 권한 설정
 ====================================================
 
 Amazon SageMaker 실습에 오신 것을 환영합니다!
@@ -15,8 +15,7 @@ Amazon SageMaker 실습에 오신 것을 환영합니다!
 
 ### IMPORTANT: Workshop Cleanup
 
-AWS에 인프라 배포는 비용이 발생됩니다. AWS 이벤트에 참석하는 경우 크레딧이 제공됩니다. 워크샵을 마쳤으면 [지침의 마지막 부분에 있는 단계](#workshop-cleanup)를 통해 모든 것이 삭제되었는지 확인하여 불필요한 과금이 발생되지 않도록 합니다.
-## --> 추후에 클린업 내용 수정
+AWS에 인프라 배포는 비용이 발생됩니다. AWS 이벤트에 참석하는 경우 크레딧이 제공됩니다. 워크샵을 마쳤으면 하단의 [IMPORTANT: Workshop Cleanup](Cleanup-README.md) 를 통해 모든 것이 삭제되었는지 확인하여 불필요한 과금이 발생되지 않도록 합니다.
 
 ## Let's Begin!
 
@@ -64,25 +63,5 @@ AWS에 인프라 배포는 비용이 발생됩니다. AWS 이벤트에 참석하
     저장소를 복제하면 좌측의 탐색기에 복제된 파일이 포함된 것을 볼 수 있습니다.
 
 ### Checkpoint:
-축하합니다. 이제 본격적인 워크샵을 진행할 수 있는 환경이 만들어졌습니다. 모든 워크샵이 끝난 후에 **Workshop Cleanup**에서 워크숍 중에 생성된 모든 자산이 제거되도록 아래 단계를 수행하여 오늘 이후에 예기치 않은 비용이 발생하지 않도록 합니다.
-#### --> 위의 내용 추후 수정
+축하합니다. 이제 본격적인 워크샵을 진행할 수 있는 환경이 만들어졌습니다. 모든 워크샵이 끝난 후에 [IMPORTANT: Workshop Cleanup](Cleanup-README.md)에서 워크숍 중에 생성된 모든 자산이 제거되도록 아래 단계를 수행하여 오늘 이후에 예기치 않은 비용이 발생하지 않도록 합니다.
 
-### IMPORTANT: Workshop Cleanup
-
-AWS에 인프라 배포는 비용이 발생됩니다. AWS 이벤트에 참석하는 경우 크레딧이 제공됩니다. 워크샵을 마쳤으면 [지침의 마지막 부분에 있는 단계](#workshop-cleanup)를 통해 모든 것이 삭제되었는지 확인하여 불필요한 과금이 발생되지 않도록 합니다.
-
-## Workshop Cleanup
-
-계정에 무언가를 두면 요금이 계속 발생하기 때문에 이는 매우 중요합니다. 어떤 것들은 CloudFormation에서 생성하고 어떤 것들은 워크샵을 통해 수동으로 생성했습니다. 아래 단계에 따라 올바르게 삭제합니다.
-
-랩 전체에서 수동으로 생성된 리소스를 삭제합니다:
-
-* S3 - 먼저 S3 버킷 중 sagemaker-ap-northeast-2-*로 시작하는 이름의 버킷을 삭제합니다.
-
-마지막으로, CloudFormation의 상단 삭제 버튼을 클릭해서 워크숍에서 사용된 [CloudFormation 스택을 삭제합니다](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html). 
-![IAM resources acknowledgement](images/cf-03.png)
-스택 삭제 프로세스에 오류가 발생하면 CloudFormation 대시 보드에서 이벤트 탭을 보고 실패한 단계를 확인합니다. CloudFormation에서 관리하는 리소스에 연결된 수동으로 생성된 리소스를 정리해야하는 경우 일 수 있습니다.
-
-## [Option] SageMaker Studio 시작하기
-
-### --> 추후에 Studio 생성 링크 추가

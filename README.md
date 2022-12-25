@@ -71,13 +71,13 @@
     - [MLOps: 3_MLOps](3_MLOps/README.md)
 
 
-## 4. [중요] 리소스 정리: Clean up
-- Cleanup.ipynb
-    - 현재 이 노트북은 작업 중 입니다. 
+# G [중요] 리소스 정리: Clean up
+### 아래 링크를 클릭하셔서, 가이드에 맞추어 리소스 정리를 꼭 해주시기 바랍니다.
+[IMPORTANT: Workshop Cleanup](Setup_Environment/Cleanup-README.md)
 
 
-# G. Reference:
-## G.1. 논문 관련
+# F. Reference:
+## F.1. 논문 관련
 - Paper Original Code: Neural Collaborative Filtering
     - 원본 파이토치 코드
     - https://github.com/hexiangnan/neural_collaborative_filtering
@@ -86,7 +86,7 @@
     - https://doheelab.github.io/recommender-system/ncf_mlp/
 
 
-## G.2. 세이지 메이커 관련
+## F.2. 세이지 메이커 관련
 - 세이지 메이커로 파이토치 사용 
     - [Use PyTorch with the SageMaker Python SDK](https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/using_pytorch.html)
 - Use PyTorch with the SageMaker Python SDK
