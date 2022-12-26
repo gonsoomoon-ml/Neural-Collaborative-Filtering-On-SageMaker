@@ -19,7 +19,7 @@
 5. 모델 서빙을 위한 Code Pipeline 을 SageMaker Pipeline 으로 연결
 ![5_mlops_codepipe_sm_serving.png](img/5_mlops_codepipe_sm_serving.png)
 6. 이벤트 (에: S3에 데이터 업로드) 발생하여 모델 훈련 및 추론 파이프라인 실행 하기
-![final_mlops_archi.png](img/final_mlops_archi.png)
+![event_final_mlops_archi.png](img/6_event_bridge_rule.png)
 
 
 # C. 실습 설명
