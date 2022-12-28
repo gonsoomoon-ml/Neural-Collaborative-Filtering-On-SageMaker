@@ -6,6 +6,7 @@ import boto3
 def lambda_handler(event, context):
     """ 
     입력으로 세이지 메이커 모델, 앤드 포인트 컨피그 및 앤드 포인트 이름을 받아서, 앤드포인트를 생성 함.
+    이미 존재하면 엔드포인트 업데이트 함.
     """
     
     # The name of the model created in the Pipeline CreateModelStep
@@ -57,7 +58,8 @@ def lambda_handler(event, context):
             EndpointName=endpoint_name, EndpointConfigName=endpoint_config_name
         )
     else:
-        print(f"Endpoint exists")            
+        create_endpoint_response = update_sm_endpoint(sm_client, endpoint_name, endpoint_config_name)
+        print(f"Endpoint, {endpoint_name}, is updated with endpoint config, {endpoint_config_name}")            
 
     # 앤드 포인트 상태 정보 추출
     endpoint_info = sm_client.describe_endpoint(EndpointName=endpoint_name)
@@ -69,16 +71,20 @@ def lambda_handler(event, context):
     
     # 앤드 포인트가 완료될 때까지 기다림 (약 8분 소요)
     print(f'Endpoint status is creating')    
-    while endpoint_status == 'Creating':
+    while (endpoint_status == 'Creating') | (endpoint_status == 'Updating'):
         endpoint_info = sm_client.describe_endpoint(EndpointName=endpoint_name)
         endpoint_status = endpoint_info['EndpointStatus']
         print(f'Endpoint status: {endpoint_status}')
-        if endpoint_status == 'Creating':
+        if (endpoint_status == 'Creating') | (endpoint_status == 'Updating'):
             time.sleep(20)
             
-    print(f'Endpoint status is created')                
-
-    return_msg = f"Created Endpoint!"        
+    if not existing_endpoints:                    
+        print(f'Endpoint status is created')                
+        return_msg = f"Created Endpoint!"        
+    else:
+        print(f'Endpoint status is updateed')                
+        return_msg = f"Updateed Endpoint!"        
+        
 
     return {
         "statusCode": 200,
@@ -86,6 +92,28 @@ def lambda_handler(event, context):
         "other_key": endpoint_name,
     }
 
+def update_sm_endpoint(client, endpoint_name, new_endpoint_config_name):
+    '''
+    엔드포인트 업데이트 
+    '''
+    print("endpoint_name: \n", endpoint_name)    
+    print("new_endpoint_config_name: ", new_endpoint_config_name)        
+    
+    current_endpoint_config_name = client.describe_endpoint(EndpointName=endpoint_name)['EndpointConfigName']
+    print("current_endpoint_config_name: ", current_endpoint_config_name)    
+
+    
+    response = client.update_endpoint(
+        EndpointName= endpoint_name,
+        EndpointConfigName= new_endpoint_config_name,
+    )
+    
+    print("Swapping is done")
+    changed_endpoint_config_name = client.describe_endpoint(EndpointName=endpoint_name)['EndpointConfigName']
+    print("changed_endpoint_config_name: \n", changed_endpoint_config_name)        
+
+    
+    return response
 
 
 
