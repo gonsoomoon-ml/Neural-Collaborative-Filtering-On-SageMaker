@@ -4,7 +4,7 @@ Resources:
   NotebookInstance:
     Type: AWS::SageMaker::NotebookInstance
     Properties:
-      InstanceType: "ml.p3.2xlarge"
+      InstanceType: "ml.g4dn.xlarge"
       DirectInternetAccess: "Enabled"
       NotebookInstanceName: "MLOPS-Notebook"
       PlatformIdentifier: "notebook-al2-v2"
