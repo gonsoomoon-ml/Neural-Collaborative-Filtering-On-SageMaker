@@ -9,6 +9,8 @@
 
 # 2. 실습 파일 
 
+- (옵션) 0.0.create-pipeline.py-buildspec.yml.ipynb
+    - 작동 방식에 대한 설명 입니다. 일단 스킵 하시고, 나중에 와서 보시기 바랍니다.
 - 1.0.Create_Config.ipynb
     - Config.json 을 생성하는 노트북
 - 1.1.create_codecommit.ipynb
@@ -17,6 +19,7 @@
     - 빌드 프로젝트 생성
 - 3.1.pipeline_project.ipynb
     - 코드 파이프라인 생성
+
 - (옵션) codecommit/sagemaker-pipelines-project.ipynb
     - code pipeline 없이 codecommit/pipelines/ncf/pipeline.py 를 테스트하기 위한 노트북 입니다.
     
