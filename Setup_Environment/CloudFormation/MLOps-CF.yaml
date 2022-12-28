@@ -86,7 +86,7 @@ Resources:
   LambdaDeploymentRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: lambda-deployment-role
+      RoleName: MLOps-LambdaDeploymentRole
       Path: "/"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
