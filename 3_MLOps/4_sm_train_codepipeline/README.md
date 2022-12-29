@@ -1,4 +1,4 @@
-# Lab4: 4_sm-train-codepipeline
+# Lab4: 4_sm_train_codepipeline
 - 모델 훈련을 위해서 code pipeline 을 SageMaker pipeline 과 연결.
 
 # 1. Code Pipeline 및 SageMaker 모델 훈련 파이프라인 생성하기
