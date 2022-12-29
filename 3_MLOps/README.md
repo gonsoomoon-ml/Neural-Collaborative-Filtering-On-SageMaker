@@ -42,15 +42,15 @@
     - 세이지 메이커 서빙 파이프라인을 구현 함.
 
 ## 3. Code Pipeline Hello World 실습
-- [3_hello-codepipeline/](3_hello-codepipeline/README.md)
+- [3_hello_codepipeline/](3_hello_codepipeline/README.md)
     - Code Pipeline 을 노트북에서 실행을 해보는 Hello World 버전 임.
 
 ## 4. 모델 훈련을 위한 Code Pipeline 을 SageMaker Pipeline 으로 연결
-- [4_sm-train-codepipeline/](4_sm-train-codepipeline/README.md)
+- [4_sm_train_codepipeline/](4_sm_train_codepipeline/README.md)
     - 모델 훈련 파이프라인을 노트북에서 실행을 해보는 실습
 
 ## 5. 모델 서빙을 위한 Code Pipeline 을 SageMaker Pipeline 으로 연결
-- [5_sm-serving-codepipeline](5_sm-serving-codepipeline/README.md)
+- [5_sm_serving_codepipeline](5_sm_serving_codepipeline/README.md)
     - 모델 추론 파이프라인을 노트북에서 실행을 해보는 실습
 
 ## 6. 이벤트 (에: S3에 데이터 업로드) 발생하여 모델 훈련 및 추론 파이프라인 실행 하기
