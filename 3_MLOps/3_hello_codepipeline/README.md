@@ -1,4 +1,4 @@
-# Lab3: 3_hello-codepipeline
+# Lab3: 3_hello_codepipeline
 - Code Pipeline 을 노트북에서 CodeCommit, CodeBuild, 및 CodePipeline 을 Hello World 로 구현 함.
 
 # 1. 실습 파일 
