@@ -1,4 +1,4 @@
-# Lab5: 5_sm-serving-codepipeline
+# Lab5: 5_sm_serving_codepipeline
 - 모델 서빙을 위해서 code pipeline 을 SageMaker pipeline 과 연결.
 
 
