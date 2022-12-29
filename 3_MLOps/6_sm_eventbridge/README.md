@@ -1,4 +1,4 @@
-# Lab6: 6_sm-eventbridge
+# Lab6: 6_sm_eventbridge
 - EventBridge를 활용하여 CodeBuild config 파일을 레포지토리에 push 하면 code pipeline 을 통해 SageMaker pipeline 실행 (Training).
 - EventBridge를 활용하여 Model Approval 하면 code pipeline 을 통해 SageMaker pipeline 실행 (Serving).
 
